@@ -60,37 +60,42 @@ class JWTAuthenticationMiddleware:
         access_token = request.COOKIES.get('access_token')
         refresh_token = request.COOKIES.get('refresh_token')
         
-        request.user = AnonymousUser()
+        # Default to AnonymousUser if AuthenticationMiddleware hasn't set it
+        if not hasattr(request, 'user'):
+            request.user = AnonymousUser()
+            
         request._new_tokens = None # Flag to tell response to set new cookies
 
-        if access_token:
-            payload = decode_token(access_token)
-            if payload and payload.get('type') == 'access':
-                try:
-                    request.user = User.objects.get(id=payload['user_id'])
-                except User.DoesNotExist:
-                    pass
+        # Only process JWT if the user is not already authenticated via Django sessions (e.g. Admin panel)
+        if not request.user.is_authenticated:
+            if access_token:
+                payload = decode_token(access_token)
+                if payload and payload.get('type') == 'access':
+                    try:
+                        request.user = User.objects.get(id=payload['user_id'])
+                    except User.DoesNotExist:
+                        pass
+                elif refresh_token:
+                    # Access token is invalid/expired, try refresh
+                    refresh_payload = decode_token(refresh_token)
+                    if refresh_payload and refresh_payload.get('type') == 'refresh':
+                        try:
+                            user = User.objects.get(id=refresh_payload['user_id'])
+                            request.user = user
+                            # Generate new tokens to be set in response
+                            request._new_tokens = generate_tokens(user)
+                        except User.DoesNotExist:
+                            pass
             elif refresh_token:
-                # Access token is invalid/expired, try refresh
+                # No access token but we have a refresh token
                 refresh_payload = decode_token(refresh_token)
                 if refresh_payload and refresh_payload.get('type') == 'refresh':
                     try:
                         user = User.objects.get(id=refresh_payload['user_id'])
                         request.user = user
-                        # Generate new tokens to be set in response
                         request._new_tokens = generate_tokens(user)
                     except User.DoesNotExist:
                         pass
-        elif refresh_token:
-            # No access token but we have a refresh token
-            refresh_payload = decode_token(refresh_token)
-            if refresh_payload and refresh_payload.get('type') == 'refresh':
-                try:
-                    user = User.objects.get(id=refresh_payload['user_id'])
-                    request.user = user
-                    request._new_tokens = generate_tokens(user)
-                except User.DoesNotExist:
-                    pass
 
         response = self.get_response(request)
 
