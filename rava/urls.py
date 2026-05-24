@@ -25,9 +25,15 @@ profile_view = login_required(TemplateView.as_view(
     template_name="account/profile.html"))
 
 urlpatterns = [
-    path('accounts/verify-otp/', rava_views.verify_otp, name='verify_otp'),
     path('admin/', admin.site.urls),
-    path('accounts/', include('allauth.urls')),
+    
+    # Custom Auth Routes
+    path('accounts/login/', rava_views.custom_login, name='account_login'),
+    path('accounts/signup/', rava_views.custom_signup, name='account_signup'),
+    path('accounts/logout/', rava_views.custom_logout, name='account_logout'),
+    path('accounts/verify-otp/', rava_views.verify_otp, name='verify_otp'),
+    path('accounts/refresh/', rava_views.refresh_token_endpoint, name='refresh_token'),
+    
     # 1. Your new Landing Page
     path('', TemplateView.as_view(template_name="index.html"), name='home'),
 

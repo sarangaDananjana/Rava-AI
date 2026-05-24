@@ -88,6 +88,15 @@ body{background:var(--ink);color:var(--cream);font-family:'DM Sans',sans-serif;m
       <form action="{% url 'account_login' %}" method="POST">
         {% csrf_token %}
         
+        <!-- ERROR DISPLAY BLOCK -->
+        {% if messages %}
+        <div class="alert-error" style="background:rgba(192,57,43,0.15); border:0.5px solid rgba(192,57,43,0.4); border-radius:8px; padding:16px; color:#E8806A; font-size:13px; margin-bottom:24px;">
+          {% for message in messages %}
+            <div style="margin-bottom:4px;">• {{ message }}</div>
+          {% endfor %}
+        </div>
+        {% endif %}
+        
         <div class="form-group">
           <label class="form-label">Email Address</label>
           <input type="email" name="login" class="form-input" placeholder="name@company.com" required>
@@ -97,7 +106,7 @@ body{background:var(--ink);color:var(--cream);font-family:'DM Sans',sans-serif;m
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
             <label class="form-label" style="margin-bottom:0;">Password</label>
             <!-- Link to reset password if needed -->
-            <a href="{% url 'account_reset_password' %}" class="auth-link" style="font-family:'Space Mono',monospace;font-size:8px;letter-spacing:0.1em;text-transform:uppercase;">Forgot?</a>
+            <a href="#" class="auth-link" style="font-family:'Space Mono',monospace;font-size:8px;letter-spacing:0.1em;text-transform:uppercase;">Forgot?</a>
           </div>
           <input type="password" name="password" class="form-input" placeholder="••••••••" required>
         </div>
