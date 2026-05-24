@@ -44,8 +44,6 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'allauth',
     'allauth.account',
-    'allauth.socialaccount',
-    'allauth.socialaccount.providers.google',
     'rava_app',
 ]
 
@@ -88,25 +86,8 @@ ACCOUNT_USER_MODEL_USERNAME_FIELD = 'username'
 ACCOUNT_LOGIN_METHODS = {'email'}
 ACCOUNT_SIGNUP_FIELDS = ['email*', 'password1*', 'password2*']
 # Change to 'mandatory' if you want them to verify via email
-ACCOUNT_EMAIL_VERIFICATION = 'mandatory'
-LOGIN_REDIRECT_URL = '/studio/'
-LOGOUT_REDIRECT_URL = '/'
 
-SOCIALACCOUNT_PROVIDERS = {
-    'google': {
-        'APP': {
-            'client_id': os.environ.get('GOOGLE_CLIENT_ID', ''),
-            'secret': os.environ.get('GOOGLE_CLIENT_SECRET', ''),
-        },
-        'SCOPE': [
-            'profile',
-            'email',
-        ],
-        'AUTH_PARAMS': {
-            'access_type': 'online',
-        }
-    }
-}
+ACCOUNT_ADAPTER = 'rava_app.adapters.OTPAccountAdapter'
 
 
 TEMPLATES = [
@@ -183,4 +164,19 @@ STATIC_URL = 'static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+
+
+# Your mail server details (Replace with your actual mail server address)
+EMAIL_HOST = 'mail.onemindsolutions.com'
+
+# 587 is standard for TLS. If your host requires SSL, use 465 and EMAIL_USE_SSL = True instead.
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+
+# Your email credentials
+EMAIL_HOST_USER = 'hello@onemindsolutions.com'
+EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_PASS', 'pass')
+
+# The default address emails will come from
+DEFAULT_FROM_EMAIL = 'Rava AI <hello@onemindsolutions.com>'

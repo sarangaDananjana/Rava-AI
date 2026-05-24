@@ -18,11 +18,14 @@ from django.contrib import admin
 from django.urls import path, include
 from django.views.generic import TemplateView  # Import this
 from django.contrib.auth.decorators import login_required  # Import this
+from rava_app import views as rava_views
+
 studio_view = login_required(TemplateView.as_view(template_name="studio.html"))
 profile_view = login_required(TemplateView.as_view(
     template_name="account/profile.html"))
 
 urlpatterns = [
+    path('accounts/verify-otp/', rava_views.verify_otp, name='verify_otp'),
     path('admin/', admin.site.urls),
     path('accounts/', include('allauth.urls')),
     # 1. Your new Landing Page
