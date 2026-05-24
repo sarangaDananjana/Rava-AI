@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Account Profile — Rava</title>
+  <link
+    href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&family=Space+Mono:wght@400;700&display=swap"
+    rel="stylesheet">
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0
+    }
+
+    :root {
+      --gold: #C8A96E;
+      --ink: #0E0D0B;
+      --ink-soft: #1C1A16;
+      --cream: #F5F1EA;
+      --red: #C0392B;
+      --muted: #6B6456;
+      --border: rgba(200, 169, 110, 0.18);
+    }
+
+    body {
+      background: var(--ink);
+      color: var(--cream);
+      font-family: 'DM Sans', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      overflow-x: hidden
+    }
+
+    .bg-gradients {
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse 60% 70% at 20% 30%, rgba(26, 58, 92, 0.4) 0%, transparent 60%), radial-gradient(ellipse 40% 50% at 80% 80%, rgba(192, 57, 43, 0.15) 0%, transparent 55%), radial-gradient(ellipse 50% 50% at 50% 50%, rgba(200, 169, 110, 0.05) 0%, transparent 70%);
+      z-index: 0;
+    }
+
+    .noise {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.78' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='220' height='220' filter='url(%23n)'/%3E%3C/svg%3E");
+      opacity: 0.06;
+      mix-blend-mode: overlay;
+      z-index: 1;
+    }
+
+    .auth-wrapper {
+      position: relative;
+      z-index: 10;
+      width: 100%;
+      max-width: 480px;
+      padding: 24px;
+    }
+
+    .auth-card {
+      background: var(--ink-soft);
+      border: 0.5px solid var(--border);
+      border-radius: 16px;
+      padding: 40px;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 24px 48px rgba(0, 0, 0, 0.5);
+    }
+
+    .auth-card .noise {
+      opacity: 0.04;
+    }
+
+    .profile-avatar {
+      width: 88px;
+      height: 88px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 40% 35%, #1A3A5C, #C8A96E44, #0E0D0B);
+      border: 1px solid var(--gold);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'DM Serif Display', serif;
+      font-size: 36px;
+      color: var(--gold);
+      margin: 0 auto 24px;
+    }
+
+    .auth-header {
+      text-align: center;
+      margin-bottom: 32px;
+    }
+
+    .auth-title {
+      font-family: 'DM Serif Display', serif;
+      font-size: 24px;
+      color: var(--cream);
+      margin-bottom: 6px;
+    }
+
+    .auth-subtitle {
+      font-size: 14px;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+
+    .info-box {
+      background: rgba(255, 255, 255, 0.02);
+      border: 0.5px solid var(--border);
+      border-radius: 12px;
+      padding: 0 20px;
+      margin-bottom: 24px;
+    }
+
+    .info-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 16px 0;
+      border-bottom: 0.5px solid rgba(200, 169, 110, 0.1);
+    }
+
+    .info-row:last-child {
+      border-bottom: none;
+    }
+
+    .info-label {
+      font-family: 'Space Mono', monospace;
+      font-size: 9px;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .info-value {
+      font-size: 14px;
+      color: var(--cream);
+      text-align: right;
+    }
+
+    .action-links {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-bottom: 32px;
+    }
+
+    .action-link {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: rgba(255, 255, 255, 0.03);
+      border: 0.5px solid var(--border);
+      border-radius: 8px;
+      padding: 14px 16px;
+      color: var(--cream);
+      font-size: 13px;
+      text-decoration: none;
+      transition: all 0.2s;
+    }
+
+    .action-link:hover {
+      border-color: rgba(200, 169, 110, 0.4);
+      background: rgba(200, 169, 110, 0.05);
+      color: var(--gold);
+    }
+
+    .action-link svg {
+      width: 14px;
+      height: 14px;
+      stroke: currentColor;
+      fill: none;
+      stroke-width: 1.5;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .btn-danger {
+      display: block;
+      text-align: center;
+      text-decoration: none;
+      width: 100%;
+      background: transparent;
+      border: 0.5px solid rgba(192, 57, 43, 0.5);
+      border-radius: 8px;
+      padding: 14px;
+      color: #E8806A;
+      font-family: 'Space Mono', monospace;
+      font-size: 10px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: all .25s;
+    }
+
+    .btn-danger:hover {
+      background: rgba(192, 57, 43, 0.1);
+      border-color: #E8806A;
+      box-shadow: 0 0 20px rgba(192, 57, 43, 0.15)
+    }
+
+    .back-link {
+      display: block;
+      text-align: center;
+      font-family: 'Space Mono', monospace;
+      font-size: 9px;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--muted);
+      text-decoration: none;
+      margin-top: 24px;
+      transition: color 0.2s;
+    }
+
+    .back-link:hover {
+      color: var(--gold);
+    }
+  </style>
+</head>
+
+<body>
+  <div class="bg-gradients"></div>
+  <div class="noise"></div>
+  <div class="auth-wrapper">
+    <div class="auth-card">
+      <div class="noise"></div>
+      <div style="position:relative;z-index:2;">
+
+        <!-- Dynamically pulls the first letter of the user's username -->
+        <div class="profile-avatar">
+          {{ user.username|slice:":1"|upper|default:"රා" }}
+        </div>
+
+        <div class="auth-header">
+          <h1 class="auth-title">Hi, {{ user.username }}</h1>
+          <p class="auth-subtitle">Rava Workspace Account</p>
+        </div>
+
+        <div class="info-box">
+          <div class="info-row">
+            <div class="info-label">Email Address</div>
+            <div class="info-value">{{ user.email }}</div>
+          </div>
+          <div class="info-row">
+            <div class="info-label">Current Plan</div>
+            <div class="info-value" style="text-transform: capitalize; color: var(--gold);">{{ user.current_plan }}
+            </div>
+          </div>
+          <div class="info-row">
+            <div class="info-label">Available Credits</div>
+            <div class="info-value" style="font-weight: 500;">{{ user.credits }} Tokens</div>
+          </div>
+          <div class="info-row">
+            <div class="info-label">Date Joined</div>
+            <div class="info-value">{{ user.date_joined|date:"M d, Y" }}</div>
+          </div>
+          <div class="info-row">
+            <div class="info-label">Last Login</div>
+            <div class="info-value">{{ user.last_login|date:"h:i A on M d" }}</div>
+          </div>
+        </div>
+
+        <div class="action-links">
+          <a href="{% url 'account_email' %}" class="action-link">
+            Manage Email Addresses
+            <svg viewBox="0 0 24 24">
+              <polyline points="9 18 15 12 9 6"></polyline>
+            </svg>
+          </a>
+          <a href="{% url 'socialaccount_connections' %}" class="action-link">
+            Connected Social Accounts
+            <svg viewBox="0 0 24 24">
+              <polyline points="9 18 15 12 9 6"></polyline>
+            </svg>
+          </a>
+          <a href="{% url 'account_set_password' %}" class="action-link">
+            Change Password
+            <svg viewBox="0 0 24 24">
+              <polyline points="9 18 15 12 9 6"></polyline>
+            </svg>
+          </a>
+        </div>
+
+        <!-- Links directly to the beautiful Logout page we built earlier -->
+        <a href="{% url 'account_logout' %}" class="btn-danger">Sign Out</a>
+
+        <a href="{% url 'studio' %}" class="back-link">← Return to Studio</a>
+
+      </div>
+    </div>
+  </div>
+</body>
+
+</html>

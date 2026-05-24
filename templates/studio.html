@@ -1,0 +1,2557 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Rava Studio</title>
+  <link
+    href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&family=Space+Mono:wght@400;700&display=swap"
+    rel="stylesheet">
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0
+    }
+
+    :root {
+      --gold: #C8A96E;
+      --gold-light: #E8D4A8;
+      --gold-dark: #8B6F3E;
+      --ink: #0E0D0B;
+      --ink-soft: #1C1A16;
+      --cream: #F5F1EA;
+      --red: #C0392B;
+      --blue: #1A3A5C;
+      --muted: #6B6456;
+      --border: rgba(200, 169, 110, 0.18);
+      --border-hover: rgba(200, 169, 110, 0.35);
+    }
+
+    html,
+    body {
+      background: var(--ink);
+      color: var(--cream);
+      font-family: 'DM Sans', sans-serif;
+      min-height: 100vh;
+      overflow-x: hidden
+    }
+
+    .noise {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.78' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='220' height='220' filter='url(%23n)'/%3E%3C/svg%3E");
+      opacity: 0.055;
+      mix-blend-mode: overlay;
+    }
+
+    /* LAYOUT */
+    .app {
+      display: flex;
+      min-height: 100vh
+    }
+
+    .sidebar {
+      width: 220px;
+      flex-shrink: 0;
+      background: var(--ink-soft);
+      border-right: 0.5px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow: hidden
+    }
+
+    .main {
+      flex: 1;
+      overflow-y: auto;
+      min-height: 100vh
+    }
+
+    /* SIDEBAR */
+    .sidebar-logo {
+      padding: 24px 20px 20px;
+      border-bottom: 0.5px solid var(--border);
+      position: relative
+    }
+
+    .logo-mark {
+      font-family: 'DM Serif Display', serif;
+      font-size: 28px;
+      letter-spacing: -1px;
+      color: var(--cream);
+      line-height: 1
+    }
+
+    .logo-mark .ra {
+      font-style: italic
+    }
+
+    .logo-mark .va {
+      color: var(--gold);
+      font-style: italic
+    }
+
+    .logo-sub {
+      font-family: 'Space Mono', monospace;
+      font-size: 8px;
+      color: var(--muted);
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      margin-top: 4px
+    }
+
+    .credits-pill {
+      margin: 14px 16px 0;
+      background: linear-gradient(135deg, rgba(200, 169, 110, 0.12), rgba(26, 58, 92, 0.2));
+      border: 0.5px solid var(--border);
+      border-radius: 8px;
+      padding: 10px 12px;
+      cursor: pointer;
+      transition: border-color .2s
+    }
+
+    .credits-pill:hover {
+      border-color: var(--border-hover)
+    }
+
+    .credits-label {
+      font-family: 'Space Mono', monospace;
+      font-size: 8px;
+      color: var(--muted);
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      margin-bottom: 3px
+    }
+
+    .credits-val {
+      font-family: 'DM Serif Display', serif;
+      font-size: 20px;
+      color: var(--gold);
+      line-height: 1
+    }
+
+    .credits-unit {
+      font-family: 'Space Mono', monospace;
+      font-size: 9px;
+      color: var(--muted);
+      letter-spacing: 0.1em
+    }
+
+    .add-credits-btn {
+      display: block;
+      margin: 8px 16px 0;
+      background: rgba(200, 169, 110, 0.1);
+      border: 0.5px solid var(--border);
+      border-radius: 6px;
+      padding: 7px 10px;
+      font-family: 'Space Mono', monospace;
+      font-size: 9px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--gold);
+      cursor: pointer;
+      text-align: center;
+      transition: all .2s;
+      width: calc(100% - 32px)
+    }
+
+    .add-credits-btn:hover {
+      background: rgba(200, 169, 110, 0.18);
+      border-color: var(--gold)
+    }
+
+    .nav {
+      padding: 16px 0;
+      flex: 1;
+      overflow-y: auto
+    }
+
+    .nav-section-label {
+      font-family: 'Space Mono', monospace;
+      font-size: 8px;
+      letter-spacing: 0.18em;
+      color: var(--muted);
+      text-transform: uppercase;
+      padding: 0 20px;
+      margin: 12px 0 6px
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 9px 20px;
+      cursor: pointer;
+      transition: all .2s;
+      position: relative;
+      font-size: 13px;
+      color: var(--muted)
+    }
+
+    .nav-item:hover {
+      color: var(--cream);
+      background: rgba(200, 169, 110, 0.06)
+    }
+
+    .nav-item.active {
+      color: var(--cream);
+      background: rgba(200, 169, 110, 0.1)
+    }
+
+    .nav-item.active::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 2px;
+      background: var(--gold);
+      border-radius: 0 2px 2px 0
+    }
+
+    .nav-item svg {
+      width: 15px;
+      height: 15px;
+      flex-shrink: 0;
+      opacity: 0.7
+    }
+
+    .nav-item.active svg {
+      opacity: 1;
+      stroke: var(--gold)
+    }
+
+    .sidebar-footer {
+      padding: 16px 20px;
+      border-top: 0.5px solid var(--border)
+    }
+
+    .sidebar-footer-text {
+      font-family: 'Space Mono', monospace;
+      font-size: 8px;
+      color: var(--muted);
+      letter-spacing: 0.1em;
+      text-transform: uppercase
+    }
+
+    /* TOPBAR */
+    .topbar {
+      padding: 18px 32px 0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      background: linear-gradient(to bottom, var(--ink) 70%, transparent)
+    }
+
+    .page-title {
+      font-family: 'DM Serif Display', serif;
+      font-size: 22px;
+      color: var(--cream);
+      letter-spacing: -0.3px
+    }
+
+    .topbar-right {
+      display: flex;
+      align-items: center;
+      gap: 10px
+    }
+
+    .badge-free {
+      font-family: 'Space Mono', monospace;
+      font-size: 8px;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--muted);
+      border: 0.5px solid var(--border);
+      border-radius: 20px;
+      padding: 4px 10px
+    }
+
+    .avatar {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 40% 35%, #1A3A5C, #C8A96E44, #0E0D0B);
+      border: 0.5px solid var(--border);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Space Mono', monospace;
+      font-size: 9px;
+      color: var(--gold)
+    }
+
+    /* CONTENT */
+    .content {
+      padding: 20px 32px 60px
+    }
+
+    /* HERO STUDIO */
+    .studio-hero {
+      border-radius: 14px;
+      border: 0.5px solid var(--border);
+      overflow: hidden;
+      position: relative;
+      margin-bottom: 20px
+    }
+
+    .studio-hero-bg {
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 50% 70% at 10% 50%, #1A3A5C 0%, transparent 60%),
+        radial-gradient(ellipse 35% 45% at 85% 25%, rgba(200, 169, 110, 0.2) 0%, transparent 55%),
+        radial-gradient(ellipse 40% 50% at 80% 85%, rgba(192, 57, 43, 0.25) 0%, transparent 55%),
+        #0E0D0B
+    }
+
+    .studio-hero-content {
+      position: relative;
+      z-index: 1;
+      padding: 28px
+    }
+
+    /* TABS */
+    .mode-tabs {
+      display: flex;
+      gap: 3px;
+      background: rgba(255, 255, 255, 0.04);
+      border-radius: 8px;
+      padding: 3px;
+      margin-bottom: 22px;
+      width: fit-content
+    }
+
+    .mode-tab {
+      font-family: 'Space Mono', monospace;
+      font-size: 9px;
+      letter-spacing: 0.13em;
+      text-transform: uppercase;
+      padding: 7px 14px;
+      border-radius: 6px;
+      cursor: pointer;
+      color: var(--muted);
+      transition: all .2s
+    }
+
+    .mode-tab.active {
+      background: rgba(200, 169, 110, 0.18);
+      color: var(--gold);
+      border: 0.5px solid rgba(200, 169, 110, 0.3)
+    }
+
+    /* EMOTIONS CAROUSEL */
+    .emotions-carousel::-webkit-scrollbar {
+      display: none;
+    }
+
+    .emotion-btn {
+      background: rgba(255, 255, 255, 0.03);
+      border: 0.5px solid var(--border);
+      border-radius: 20px;
+      padding: 6px 12px;
+      font-family: 'Space Mono', monospace;
+      font-size: 9px;
+      letter-spacing: 0.1em;
+      color: var(--muted);
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all .2s;
+    }
+
+    .emotion-btn:hover {
+      background: rgba(200, 169, 110, 0.15);
+      border-color: var(--gold);
+      color: var(--gold);
+      transform: translateY(-1px);
+    }
+
+    /* TEXT INPUT */
+    .text-input-wrap {
+      position: relative;
+      margin-bottom: 16px
+    }
+
+    .text-input {
+      width: 100%;
+      background: rgba(255, 255, 255, 0.04);
+      border: 0.5px solid var(--border);
+      border-radius: 10px;
+      padding: 14px 16px;
+      color: var(--cream);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 14px;
+      line-height: 1.7;
+      resize: none;
+      transition: border-color .2s;
+      min-height: 120px
+    }
+
+    .text-input::placeholder {
+      color: var(--muted)
+    }
+
+    .text-input:focus {
+      outline: none;
+      border-color: rgba(200, 169, 110, 0.4)
+    }
+
+    .char-count {
+      font-family: 'Space Mono', monospace;
+      font-size: 9px;
+      color: var(--muted);
+      text-align: right;
+      margin-top: 5px;
+      letter-spacing: 0.08em
+    }
+
+    /* CONTROLS ROW */
+    .controls-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr auto;
+      gap: 10px;
+      align-items: end;
+      margin-bottom: 16px
+    }
+
+    .ctrl-group {
+      display: flex;
+      flex-direction: column;
+      gap: 5px
+    }
+
+    .ctrl-label {
+      font-family: 'Space Mono', monospace;
+      font-size: 8px;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--muted)
+    }
+
+    .ctrl-select {
+      background: rgba(255, 255, 255, 0.06);
+      border: 0.5px solid var(--border);
+      border-radius: 8px;
+      padding: 9px 12px;
+      color: var(--cream);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 13px;
+      cursor: pointer;
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236B6456' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 10px center;
+      padding-right: 30px;
+      transition: border-color .2s
+    }
+
+    .ctrl-select:focus {
+      outline: none;
+      border-color: rgba(200, 169, 110, 0.4)
+    }
+
+    .ctrl-select option {
+      background: var(--ink-soft)
+    }
+
+    .ctrl-slider-row {
+      display: flex;
+      align-items: center;
+      gap: 8px
+    }
+
+    .ctrl-slider {
+      flex: 1;
+      accent-color: var(--gold);
+      height: 3px
+    }
+
+    .ctrl-slider-val {
+      font-family: 'Space Mono', monospace;
+      font-size: 10px;
+      color: var(--gold);
+      min-width: 28px;
+      text-align: right
+    }
+
+    .generate-btn {
+      background: linear-gradient(135deg, rgba(200, 169, 110, 0.25), rgba(200, 169, 110, 0.1));
+      border: 0.5px solid rgba(200, 169, 110, 0.5);
+      border-radius: 10px;
+      padding: 10px 22px;
+      color: var(--gold);
+      font-family: 'Space Mono', monospace;
+      font-size: 9px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: all .25s;
+      white-space: nowrap;
+      position: relative;
+      overflow: hidden
+    }
+
+    .generate-btn:hover {
+      background: linear-gradient(135deg, rgba(200, 169, 110, 0.4), rgba(200, 169, 110, 0.2));
+      border-color: var(--gold);
+      box-shadow: 0 0 20px rgba(200, 169, 110, 0.15)
+    }
+
+    .generate-btn:active {
+      transform: scale(0.98)
+    }
+
+    .generate-btn.generating {
+      animation: pulse-gold 1.2s ease-in-out infinite
+    }
+
+    @keyframes pulse-gold {
+
+      0%,
+      100% {
+        box-shadow: 0 0 0 rgba(200, 169, 110, 0.4)
+      }
+
+      50% {
+        box-shadow: 0 0 18px rgba(200, 169, 110, 0.3)
+      }
+    }
+
+    /* WAVEFORM / PLAYER */
+    .player-wrap {
+      background: rgba(255, 255, 255, 0.03);
+      border: 0.5px solid var(--border);
+      border-radius: 10px;
+      padding: 14px 16px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 16px
+    }
+
+    .play-btn {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: rgba(200, 169, 110, 0.15);
+      border: 0.5px solid rgba(200, 169, 110, 0.4);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      flex-shrink: 0;
+      transition: all .2s
+    }
+
+    .play-btn:hover {
+      background: rgba(200, 169, 110, 0.25)
+    }
+
+    .play-btn svg {
+      width: 14px;
+      height: 14px;
+      fill: var(--gold)
+    }
+
+    .waveform-canvas {
+      flex: 1;
+      height: 40px;
+      cursor: pointer
+    }
+
+    .player-meta {
+      font-family: 'Space Mono', monospace;
+      font-size: 9px;
+      color: var(--muted);
+      text-align: right;
+      flex-shrink: 0
+    }
+
+    .player-time {
+      color: var(--cream);
+      font-size: 10px;
+      margin-bottom: 2px
+    }
+
+    .dl-btn {
+      background: transparent;
+      border: 0.5px solid var(--border);
+      border-radius: 6px;
+      padding: 5px 10px;
+      font-family: 'Space Mono', monospace;
+      font-size: 8px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--muted);
+      cursor: pointer;
+      transition: all .2s;
+      margin-top: 4px
+    }
+
+    .dl-btn:hover {
+      border-color: var(--gold);
+      color: var(--gold)
+    }
+
+    .hidden {
+      display: none !important
+    }
+
+    /* CREDIT COST TAG */
+    .cost-tag {
+      font-family: 'Space Mono', monospace;
+      font-size: 8px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--muted);
+      display: flex;
+      align-items: center;
+      gap: 5px
+    }
+
+    .cost-dot {
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: var(--gold)
+    }
+
+    /* VOICE CLONE SECTION */
+    .clone-upload {
+      border: 1px dashed rgba(200, 169, 110, 0.25);
+      border-radius: 10px;
+      padding: 28px;
+      text-align: center;
+      cursor: pointer;
+      transition: all .2s;
+      background: rgba(200, 169, 110, 0.02)
+    }
+
+    .clone-upload:hover {
+      border-color: rgba(200, 169, 110, 0.5);
+      background: rgba(200, 169, 110, 0.05)
+    }
+
+    .clone-upload-icon {
+      margin: 0 auto 12px;
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      background: rgba(200, 169, 110, 0.1);
+      display: flex;
+      align-items: center;
+      justify-content: center
+    }
+
+    .clone-upload-icon svg {
+      width: 18px;
+      height: 18px;
+      stroke: var(--gold)
+    }
+
+    .clone-upload-title {
+      font-family: 'DM Serif Display', serif;
+      font-size: 16px;
+      color: var(--cream);
+      margin-bottom: 4px
+    }
+
+    .clone-upload-sub {
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.6
+    }
+
+    .clone-voices-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-top: 16px
+    }
+
+    .voice-card {
+      background: rgba(255, 255, 255, 0.03);
+      border: 0.5px solid var(--border);
+      border-radius: 10px;
+      padding: 12px;
+      cursor: pointer;
+      transition: all .2s;
+      position: relative;
+      overflow: hidden
+    }
+
+    .voice-card:hover {
+      border-color: var(--border-hover)
+    }
+
+    .voice-card.selected {
+      border-color: rgba(200, 169, 110, 0.5);
+      background: rgba(200, 169, 110, 0.07)
+    }
+
+    .voice-card-avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Space Mono', monospace;
+      font-size: 11px;
+      font-weight: 700
+    }
+
+    .voice-card-name {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--cream);
+      margin-bottom: 2px
+    }
+
+    .voice-card-meta {
+      font-family: 'Space Mono', monospace;
+      font-size: 8px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--muted)
+    }
+
+    .voice-card-badge {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      font-family: 'Space Mono', monospace;
+      font-size: 7px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      padding: 3px 6px;
+      border-radius: 4px
+    }
+
+    .badge-free {
+      background: rgba(26, 58, 92, 0.4);
+      color: #7AAFD4;
+      border: 0.5px solid rgba(26, 58, 92, 0.6)
+    }
+
+    .badge-pro {
+      background: rgba(200, 169, 110, 0.15);
+      color: var(--gold);
+      border: 0.5px solid rgba(200, 169, 110, 0.3)
+    }
+
+    .badge-cloned {
+      background: rgba(192, 57, 43, 0.2);
+      color: #E8806A;
+      border: 0.5px solid rgba(192, 57, 43, 0.4)
+    }
+
+    /* HISTORY */
+    .history-list {
+      display: flex;
+      flex-direction: column;
+      gap: 6px
+    }
+
+    .history-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: rgba(255, 255, 255, 0.03);
+      border: 0.5px solid var(--border);
+      border-radius: 8px;
+      padding: 12px 14px;
+      cursor: pointer;
+      transition: all .2s
+    }
+
+    .history-item:hover {
+      border-color: var(--border-hover)
+    }
+
+    .history-play {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: rgba(200, 169, 110, 0.1);
+      border: 0.5px solid rgba(200, 169, 110, 0.3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      cursor: pointer;
+      transition: all .2s
+    }
+
+    .history-play:hover {
+      background: rgba(200, 169, 110, 0.2)
+    }
+
+    .history-play svg {
+      width: 10px;
+      height: 10px;
+      fill: var(--gold)
+    }
+
+    .history-text {
+      flex: 1;
+      font-size: 12px;
+      color: var(--muted);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis
+    }
+
+    .history-meta {
+      font-family: 'Space Mono', monospace;
+      font-size: 8px;
+      color: var(--muted);
+      text-align: right;
+      flex-shrink: 0;
+      letter-spacing: 0.08em
+    }
+
+    .history-voice {
+      color: var(--cream);
+      font-size: 10px;
+      margin-bottom: 2px
+    }
+
+    /* STATS CARDS */
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-bottom: 20px
+    }
+
+    .stat-card {
+      background: var(--ink-soft);
+      border: 0.5px solid var(--border);
+      border-radius: 10px;
+      padding: 16px;
+      position: relative;
+      overflow: hidden;
+      transition: border-color .3s, transform .3s
+    }
+
+    .stat-card:hover {
+      transform: translateY(-2px)
+    }
+
+    .stat-card>.noise {
+      opacity: 0.04
+    }
+
+    .stat-label {
+      font-family: 'Space Mono', monospace;
+      font-size: 8px;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 6px
+    }
+
+    .stat-val {
+      font-family: 'DM Serif Display', serif;
+      font-size: 26px;
+      color: var(--cream);
+      line-height: 1
+    }
+
+    .stat-unit {
+      font-family: 'Space Mono', monospace;
+      font-size: 9px;
+      color: var(--muted);
+      margin-top: 2px;
+      letter-spacing: 0.08em
+    }
+
+    .stat-trend {
+      font-family: 'Space Mono', monospace;
+      font-size: 8px;
+      color: #5CAD7A;
+      margin-top: 4px
+    }
+
+    /* MARKETING STAT CARDS */
+    .mkt-stats-row {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-bottom: 20px
+    }
+
+    .mkt-stat-card {
+      border-radius: 12px;
+      padding: 20px;
+      position: relative;
+      overflow: hidden;
+      cursor: default;
+      transition: transform .3s ease, box-shadow .3s ease
+    }
+
+    .mkt-stat-card:hover {
+      transform: translateY(-3px)
+    }
+
+    /* Card 1 — Voices (gold) */
+    .mkt-card-voices {
+      background:
+        radial-gradient(ellipse 80% 60% at 90% 110%, rgba(200, 169, 110, 0.22) 0%, transparent 65%),
+        radial-gradient(ellipse 50% 40% at 5% -10%, rgba(200, 169, 110, 0.12) 0%, transparent 60%),
+        var(--ink-soft);
+      border: 0.5px solid rgba(200, 169, 110, 0.35)
+    }
+
+    .mkt-card-voices:hover {
+      box-shadow: 0 8px 32px rgba(200, 169, 110, 0.12);
+      border-color: rgba(200, 169, 110, 0.55)
+    }
+
+    /* Card 2 — Emotions (blue) */
+    .mkt-card-emotions {
+      background:
+        radial-gradient(ellipse 80% 60% at 90% 110%, rgba(122, 175, 212, 0.22) 0%, transparent 65%),
+        radial-gradient(ellipse 50% 40% at 5% -10%, rgba(122, 175, 212, 0.1) 0%, transparent 60%),
+        var(--ink-soft);
+      border: 0.5px solid rgba(122, 175, 212, 0.3)
+    }
+
+    .mkt-card-emotions:hover {
+      box-shadow: 0 8px 32px rgba(122, 175, 212, 0.1);
+      border-color: rgba(122, 175, 212, 0.5)
+    }
+
+    /* Card 3 — Credits */
+    .mkt-card-credits {
+      background:
+        radial-gradient(ellipse 80% 60% at 90% 110%, rgba(92, 173, 122, 0.18) 0%, transparent 65%),
+        radial-gradient(ellipse 50% 40% at 5% -10%, rgba(200, 169, 110, 0.08) 0%, transparent 60%),
+        var(--ink-soft);
+      border: 0.5px solid var(--border)
+    }
+
+    .mkt-card-credits:hover {
+      box-shadow: 0 8px 32px rgba(92, 173, 122, 0.08);
+      border-color: rgba(92, 173, 122, 0.35)
+    }
+
+    /* Decorative waveform lines inside voice card */
+    .mkt-deco-waves {
+      position: absolute;
+      bottom: 0;
+      right: 0;
+      width: 80px;
+      height: 100%;
+      opacity: 0.18;
+      pointer-events: none
+    }
+
+    /* Floating dots grid */
+    .mkt-dots-grid {
+      position: absolute;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      width: 90px;
+      pointer-events: none;
+      opacity: 0.12
+    }
+
+    /* Circular ring deco */
+    .mkt-ring-deco {
+      position: absolute;
+      bottom: -24px;
+      right: -24px;
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      pointer-events: none;
+      opacity: 0.18
+    }
+
+    .mkt-eyebrow {
+      font-family: 'Space Mono', monospace;
+      font-size: 8px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 6px
+    }
+
+    .mkt-eyebrow-dot {
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      flex-shrink: 0
+    }
+
+    .mkt-number {
+      font-family: 'DM Serif Display', serif;
+      font-size: 38px;
+      line-height: 1;
+      letter-spacing: -1px;
+      margin-bottom: 2px
+    }
+
+    .mkt-noun {
+      font-family: 'DM Serif Display', serif;
+      font-size: 17px;
+      font-style: italic;
+      line-height: 1.1;
+      margin-bottom: 10px;
+      color: var(--cream)
+    }
+
+    .mkt-desc {
+      font-family: 'DM Sans', sans-serif;
+      font-size: 11px;
+      color: var(--muted);
+      line-height: 1.6;
+      max-width: 90%
+    }
+
+    .mkt-pill-row {
+      display: flex;
+      gap: 5px;
+      flex-wrap: wrap;
+      margin-top: 12px
+    }
+
+    .mkt-pill {
+      font-family: 'Space Mono', monospace;
+      font-size: 7.5px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      padding: 3px 8px;
+      border-radius: 20px;
+      border: 0.5px solid
+    }
+
+    .mkt-pill-gold {
+      color: var(--gold);
+      border-color: rgba(200, 169, 110, 0.35);
+      background: rgba(200, 169, 110, 0.07)
+    }
+
+    .mkt-pill-blue {
+      color: #7AAFD4;
+      border-color: rgba(122, 175, 212, 0.35);
+      background: rgba(122, 175, 212, 0.07)
+    }
+
+    .mkt-pill-green {
+      color: #5CAD7A;
+      border-color: rgba(92, 173, 122, 0.35);
+      background: rgba(92, 173, 122, 0.07)
+    }
+
+    .mkt-cta-link {
+      font-family: 'Space Mono', monospace;
+      font-size: 8px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      cursor: pointer;
+      margin-top: 12px;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      transition: gap .2s, opacity .2s
+    }
+
+    .mkt-cta-link:hover {
+      gap: 9px
+    }
+
+    /* mini voice-bar animation inside card 1 */
+    .mkt-voice-bars {
+      display: flex;
+      align-items: flex-end;
+      gap: 2px;
+      height: 22px;
+      margin-top: 12px
+    }
+
+    .mkt-vbar {
+      width: 3px;
+      border-radius: 2px 2px 0 0;
+      background: var(--gold);
+      animation: mkt-vbar-pulse 1.4s ease-in-out infinite;
+      opacity: 0.7
+    }
+
+    @keyframes mkt-vbar-pulse {
+
+      0%,
+      100% {
+        transform: scaleY(0.3);
+        opacity: 0.4
+      }
+
+      50% {
+        transform: scaleY(1);
+        opacity: 0.9
+      }
+    }
+
+    .mkt-vbar:nth-child(1) {
+      height: 10px;
+      animation-delay: 0s
+    }
+
+    .mkt-vbar:nth-child(2) {
+      height: 18px;
+      animation-delay: .1s
+    }
+
+    .mkt-vbar:nth-child(3) {
+      height: 14px;
+      animation-delay: .2s
+    }
+
+    .mkt-vbar:nth-child(4) {
+      height: 22px;
+      animation-delay: .3s
+    }
+
+    .mkt-vbar:nth-child(5) {
+      height: 10px;
+      animation-delay: .4s
+    }
+
+    .mkt-vbar:nth-child(6) {
+      height: 16px;
+      animation-delay: .5s
+    }
+
+    .mkt-vbar:nth-child(7) {
+      height: 20px;
+      animation-delay: .6s
+    }
+
+    .mkt-vbar:nth-child(8) {
+      height: 12px;
+      animation-delay: .7s
+    }
+
+    .mkt-vbar:nth-child(9) {
+      height: 18px;
+      animation-delay: .8s
+    }
+
+    .mkt-vbar:nth-child(10) {
+      height: 8px;
+      animation-delay: .9s
+    }
+
+    /* credits radial fill deco */
+    .mkt-credits-ring {
+      position: absolute;
+      top: 50%;
+      right: 16px;
+      transform: translateY(-50%);
+      width: 56px;
+      height: 56px
+    }
+
+    /* SECTION HEADER */
+    .section-hdr {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      margin-bottom: 14px
+    }
+
+    .section-title {
+      font-family: 'DM Serif Display', serif;
+      font-size: 18px;
+      color: var(--cream)
+    }
+
+    .section-label-tag {
+      font-family: 'Space Mono', monospace;
+      font-size: 8px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--gold)
+    }
+
+    .view-all {
+      font-family: 'Space Mono', monospace;
+      font-size: 8px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--muted);
+      cursor: pointer;
+      transition: color .2s
+    }
+
+    .view-all:hover {
+      color: var(--gold)
+    }
+
+    /* SPECTRUM BAR */
+    .spectrum-wrap {
+      display: flex;
+      gap: 2px;
+      align-items: flex-end;
+      height: 28px;
+      margin-bottom: 4px
+    }
+
+    .sbar {
+      flex: 1;
+      border-radius: 2px 2px 0 0;
+      transition: height .08s ease
+    }
+
+    /* ===== REFILL MODAL ===== */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.75);
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      backdrop-filter: blur(4px)
+    }
+
+    .modal-box {
+      width: 560px;
+      max-width: 100%;
+      border-radius: 16px;
+      overflow: hidden;
+      position: relative;
+      border: 0.5px solid var(--border);
+      background: var(--ink)
+    }
+
+    .modal-bg {
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 50% 60% at 15% 40%, #1A3A5C44 0%, transparent 60%),
+        radial-gradient(ellipse 40% 40% at 85% 70%, rgba(192, 57, 43, 0.2) 0%, transparent 55%),
+        var(--ink)
+    }
+
+    .modal-content {
+      position: relative;
+      z-index: 1;
+      padding: 32px
+    }
+
+    .modal-title {
+      font-family: 'DM Serif Display', serif;
+      font-size: 26px;
+      text-align: center;
+      color: var(--cream);
+      margin-bottom: 6px;
+      letter-spacing: -0.3px
+    }
+
+    .modal-sub {
+      font-size: 13px;
+      color: var(--muted);
+      text-align: center;
+      margin-bottom: 28px;
+      line-height: 1.6
+    }
+
+    .plans-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-bottom: 24px
+    }
+
+    .plan-card {
+      border-radius: 12px;
+      padding: 20px 16px;
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+      transition: transform .2s, box-shadow .2s;
+      border: 1.5px solid transparent
+    }
+
+    .plan-card:hover {
+      transform: translateY(-2px)
+    }
+
+    .plan-card.selected {
+      border-color: rgba(255, 255, 255, 0.3) !important
+    }
+
+    /* Plan gradient backgrounds (matching screenshot) */
+    .plan-free {
+      background: radial-gradient(ellipse 70% 80% at 30% 40%, #1E2F6A 0%, rgba(14, 13, 11, 0.8) 70%), radial-gradient(ellipse 50% 50% at 75% 70%, rgba(180, 60, 35, 0.5) 0%, transparent 60%), #0F1020
+    }
+
+    .plan-starter {
+      background: radial-gradient(ellipse 60% 70% at 40% 45%, #4A3080 0%, rgba(20, 20, 40, 0.9) 65%), radial-gradient(ellipse 50% 50% at 70% 70%, rgba(180, 60, 120, 0.5) 0%, transparent 55%), #18102E
+    }
+
+    .plan-pro {
+      background: radial-gradient(ellipse 55% 60% at 35% 45%, rgba(180, 60, 35, 0.9) 0%, rgba(120, 30, 10, 0.6) 40%, transparent 65%), radial-gradient(ellipse 40% 40% at 80% 25%, rgba(200, 169, 110, 0.3) 0%, transparent 50%), radial-gradient(ellipse 60% 55% at 10% 75%, #1A3A5C44 0%, transparent 55%), #2A1008
+    }
+
+    .plan-card-noise {
+      position: absolute;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.76' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)'/%3E%3C/svg%3E");
+      opacity: 0.22;
+      mix-blend-mode: overlay;
+      pointer-events: none
+    }
+
+    .plan-icon {
+      font-size: 22px;
+      margin-bottom: 14px;
+      line-height: 1
+    }
+
+    .plan-name {
+      font-family: 'DM Serif Display', serif;
+      font-size: 22px;
+      color: var(--cream);
+      margin-bottom: 4px
+    }
+
+    .plan-desc {
+      font-size: 12px;
+      color: rgba(245, 241, 234, 0.55);
+      margin-bottom: 16px;
+      line-height: 1.5
+    }
+
+    .plan-price {
+      font-family: 'DM Serif Display', serif;
+      font-size: 20px;
+      color: var(--cream)
+    }
+
+    .plan-price span {
+      font-family: 'DM Sans', sans-serif;
+      font-size: 12px;
+      color: rgba(245, 241, 234, 0.45);
+      font-weight: 400
+    }
+
+    .modal-actions {
+      display: flex;
+      gap: 10px;
+      justify-content: center
+    }
+
+    .btn-cancel {
+      background: transparent;
+      border: 0.5px solid var(--border);
+      border-radius: 8px;
+      padding: 10px 24px;
+      font-family: 'Space Mono', monospace;
+      font-size: 9px;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--muted);
+      cursor: pointer;
+      transition: all .2s
+    }
+
+    .btn-cancel:hover {
+      border-color: var(--border-hover);
+      color: var(--cream)
+    }
+
+    .btn-subscribe {
+      background: rgba(200, 169, 110, 0.2);
+      border: 0.5px solid rgba(200, 169, 110, 0.5);
+      border-radius: 8px;
+      padding: 10px 24px;
+      font-family: 'Space Mono', monospace;
+      font-size: 9px;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--gold);
+      cursor: pointer;
+      transition: all .2s
+    }
+
+    .btn-subscribe:hover {
+      background: rgba(200, 169, 110, 0.3);
+      border-color: var(--gold)
+    }
+
+    /* WATCH AD BTN */
+    .watch-ad-btn {
+      width: 100%;
+      margin-top: 10px;
+      background: rgba(26, 58, 92, 0.3);
+      border: 0.5px solid rgba(26, 58, 92, 0.6);
+      border-radius: 8px;
+      padding: 10px;
+      font-family: 'Space Mono', monospace;
+      font-size: 8px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: #7AAFD4;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: all .2s
+    }
+
+    .watch-ad-btn:hover {
+      background: rgba(26, 58, 92, 0.5);
+      border-color: rgba(26, 58, 92, 0.9)
+    }
+
+    .watch-ad-btn svg {
+      width: 12px;
+      height: 12px;
+      stroke: #7AAFD4;
+      fill: none
+    }
+
+    /* TOAST */
+    .toast {
+      position: fixed;
+      bottom: 28px;
+      left: 50%;
+      transform: translateX(-50%) translateY(10px);
+      background: var(--ink-soft);
+      border: 0.5px solid rgba(200, 169, 110, 0.4);
+      border-radius: 8px;
+      padding: 11px 20px;
+      font-family: 'Space Mono', monospace;
+      font-size: 9px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--gold);
+      opacity: 0;
+      transition: all .3s;
+      z-index: 200;
+      pointer-events: none
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0)
+    }
+
+    /* PANEL SECTIONS */
+    .panel {
+      display: none
+    }
+
+    .panel.active {
+      display: block
+    }
+
+    /* GENERATING ANIM */
+    .gen-anim {
+      display: flex;
+      gap: 4px;
+      align-items: center;
+      height: 40px
+    }
+
+    .gen-bar {
+      width: 3px;
+      border-radius: 2px;
+      background: var(--gold);
+      animation: gen-wave 1s ease-in-out infinite
+    }
+
+    .gen-bar:nth-child(1) {
+      animation-delay: 0s;
+      height: 12px
+    }
+
+    .gen-bar:nth-child(2) {
+      animation-delay: .1s;
+      height: 24px
+    }
+
+    .gen-bar:nth-child(3) {
+      animation-delay: .2s;
+      height: 36px
+    }
+
+    .gen-bar:nth-child(4) {
+      animation-delay: .3s;
+      height: 20px
+    }
+
+    .gen-bar:nth-child(5) {
+      animation-delay: .4s;
+      height: 30px
+    }
+
+    .gen-bar:nth-child(6) {
+      animation-delay: .5s;
+      height: 16px
+    }
+
+    .gen-bar:nth-child(7) {
+      animation-delay: .6s;
+      height: 28px
+    }
+
+    @keyframes gen-wave {
+
+      0%,
+      100% {
+        transform: scaleY(0.4);
+        opacity: 0.4
+      }
+
+      50% {
+        transform: scaleY(1);
+        opacity: 1
+      }
+    }
+
+    /* SCROLLBAR */
+    ::-webkit-scrollbar {
+      width: 4px
+    }
+
+    ::-webkit-scrollbar-track {
+      background: transparent
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: rgba(200, 169, 110, 0.2);
+      border-radius: 2px
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="app">
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+      <div class="noise"></div>
+      <div class="sidebar-logo">
+        <div class="logo-mark"><span class="ra">Ra</span><span class="va">va</span></div>
+        <div class="logo-sub">Studio · v1.0</div>
+      </div>
+      <div class="credits-pill" onclick="openModal()">
+        <div class="credits-label">Credits</div>
+        <!-- Pull actual DB credits -->
+        <div class="credits-val" id="credit-display">{{ user.credits }}</div>
+        <div class="credits-unit">credits available</div>
+      </div>
+      <button class="add-credits-btn" onclick="openModal()">+ Add Credits</button>
+      <nav class="nav">
+        <div class="nav-section-label">Generate</div>
+        <div class="nav-item active" onclick="switchPanel('tts',this)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M11 5L6 9H2v6h4l5 4V5z" />
+            <path d="M15.54 8.46a5 5 0 0 1 0 7.07" />
+            <path d="M19.07 4.93a10 10 0 0 1 0 14.14" />
+          </svg>
+          TTS Generate
+        </div>
+        <div class="nav-item" onclick="switchPanel('clone',this)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <circle cx="12" cy="8" r="4" />
+            <path d="M20 21a8 8 0 1 0-16 0" />
+            <path d="M15 8a3 3 0 0 0-3-3" />
+          </svg>
+          Voice Cloning
+        </div>
+        <div class="nav-item" onclick="switchPanel('batch',this)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+            <polyline points="14,2 14,8 20,8" />
+            <line x1="16" y1="13" x2="8" y2="13" />
+            <line x1="16" y1="17" x2="8" y2="17" />
+            <line x1="10" y1="9" x2="8" y2="9" />
+          </svg>
+          Batch Convert
+        </div>
+        <div class="nav-section-label">Manage</div>
+        <div class="nav-item" onclick="switchPanel('history',this)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <circle cx="12" cy="12" r="10" />
+            <polyline points="12,6 12,12 16,14" />
+          </svg>
+          History
+        </div>
+        <div class="nav-item" onclick="switchPanel('api',this)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
+            <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
+          </svg>
+          API Access
+        </div>
+        <div class="nav-item" onclick="switchPanel('settings',this)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <circle cx="12" cy="12" r="3" />
+            <path
+              d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
+          </svg>
+          Settings
+        </div>
+        <a href="{% url 'account_logout' %}" class="nav-item" style="text-decoration: none;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+            <polyline points="16 17 21 12 16 7" />
+            <line x1="21" y1="12" x2="9" y2="12" />
+          </svg>
+          Sign Out
+        </a>
+      </nav>
+      <div class="sidebar-footer">
+        <div class="sidebar-footer-text">The roar of Lanka</div>
+        <div
+          style="font-family:'DM Serif Display',serif;font-size:11px;color:var(--muted);font-style:italic;margin-top:2px">
+          රාවය</div>
+      </div>
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <main class="main">
+      <div class="topbar">
+        <div class="page-title" id="page-title">TTS Generate</div>
+        <div class="topbar-right">
+          <!-- Show actual DB plan -->
+          <div class="badge-free" style="text-transform: capitalize;">{{ user.current_plan|default:"Free Plan"|title }}
+          </div>
+
+          <a href="{% url 'account_profile' %}" class="avatar" style="text-decoration: none; color: var(--gold);"
+            title="View Profile">
+            {{ user.username|slice:":1"|upper|default:"රා" }}
+          </a>
+        </div>
+      </div>
+
+      <div class="content">
+
+        <!-- ===== TTS PANEL ===== -->
+        <div class="panel active" id="panel-tts">
+          <!-- MARKETING STAT CARDS -->
+          <div class="mkt-stats-row">
+
+            <!-- Card 1: Voices -->
+            <div class="mkt-stat-card mkt-card-voices">
+              <div class="noise"></div>
+              <!-- decorative waveform SVG -->
+              <svg class="mkt-deco-waves" viewBox="0 0 80 60" preserveAspectRatio="none" fill="none"
+                xmlns="http://www.w3.org/2000/svg">
+                <path d="M0 30 Q10 10 20 30 Q30 50 40 30 Q50 10 60 30 Q70 50 80 30" stroke="#C8A96E" stroke-width="1.2"
+                  fill="none" />
+                <path d="M0 38 Q10 22 20 38 Q30 54 40 38 Q50 22 60 38 Q70 54 80 38" stroke="#C8A96E" stroke-width="0.8"
+                  fill="none" />
+                <path d="M0 22 Q10 6 20 22 Q30 38 40 22 Q50 6 60 22 Q70 38 80 22" stroke="#C8A96E" stroke-width="0.5"
+                  fill="none" />
+              </svg>
+              <div class="mkt-eyebrow" style="color:var(--gold)">
+                <span class="mkt-eyebrow-dot" style="background:var(--gold)"></span>
+                Ultra-Realistic
+              </div>
+              <div class="mkt-number" style="color:var(--gold)">20</div>
+              <div class="mkt-noun">Voices</div>
+              <div class="mkt-voice-bars">
+                <div class="mkt-vbar"></div>
+                <div class="mkt-vbar"></div>
+                <div class="mkt-vbar"></div>
+                <div class="mkt-vbar"></div>
+                <div class="mkt-vbar"></div>
+                <div class="mkt-vbar"></div>
+                <div class="mkt-vbar"></div>
+                <div class="mkt-vbar"></div>
+                <div class="mkt-vbar"></div>
+                <div class="mkt-vbar"></div>
+              </div>
+              <div class="mkt-pill-row">
+                <span class="mkt-pill mkt-pill-gold">Male</span>
+                <span class="mkt-pill mkt-pill-gold">Female</span>
+                <span class="mkt-pill mkt-pill-gold">Neutral</span>
+              </div>
+            </div>
+
+            <!-- Card 2: Emotions -->
+            <div class="mkt-stat-card mkt-card-emotions">
+              <div class="noise"></div>
+              <!-- decorative dots grid -->
+              <svg class="mkt-dots-grid" viewBox="0 0 90 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <g fill="#7AAFD4">
+                  <circle cx="10" cy="10" r="1.5" />
+                  <circle cx="25" cy="10" r="1.5" />
+                  <circle cx="40" cy="10" r="1.5" />
+                  <circle cx="55" cy="10" r="1.5" />
+                  <circle cx="70" cy="10" r="1.5" />
+                  <circle cx="10" cy="24" r="1.5" />
+                  <circle cx="25" cy="24" r="1.5" />
+                  <circle cx="40" cy="24" r="1.5" />
+                  <circle cx="55" cy="24" r="1.5" />
+                  <circle cx="70" cy="24" r="1.5" />
+                  <circle cx="10" cy="38" r="1.5" />
+                  <circle cx="25" cy="38" r="1.5" />
+                  <circle cx="40" cy="38" r="1.5" />
+                  <circle cx="55" cy="38" r="1.5" />
+                  <circle cx="70" cy="38" r="1.5" />
+                  <circle cx="10" cy="52" r="1.5" />
+                  <circle cx="25" cy="52" r="1.5" />
+                  <circle cx="40" cy="52" r="1.5" />
+                  <circle cx="55" cy="52" r="1.5" />
+                  <circle cx="70" cy="52" r="1.5" />
+                  <circle cx="10" cy="66" r="1.5" />
+                  <circle cx="25" cy="66" r="1.5" />
+                  <circle cx="40" cy="66" r="1.5" />
+                  <circle cx="55" cy="66" r="1.5" />
+                  <circle cx="70" cy="66" r="1.5" />
+                </g>
+              </svg>
+              <div class="mkt-eyebrow" style="color:#7AAFD4">
+                <span class="mkt-eyebrow-dot" style="background:#7AAFD4"></span>
+                Deep Expression
+              </div>
+              <div class="mkt-number" style="color:#7AAFD4">23</div>
+              <div class="mkt-noun">Emotion Types</div>
+              <div class="mkt-desc">Raw, genuine human emotions — from <span
+                  style="color:var(--cream)">[whispers]</span> to <span style="color:var(--cream)">[shouting]</span>
+              </div>
+              <div class="mkt-pill-row">
+                <span class="mkt-pill mkt-pill-blue">Joy</span>
+                <span class="mkt-pill mkt-pill-blue">Fear</span>
+                <span class="mkt-pill mkt-pill-blue">Sorrow</span>
+                <span class="mkt-pill mkt-pill-blue">+20 more</span>
+              </div>
+            </div>
+
+            <!-- Card 3: Credits -->
+            <div class="mkt-stat-card mkt-card-credits"
+              style="display:flex;flex-direction:column;justify-content:space-between">
+              <div class="noise"></div>
+              <!-- decorative ring -->
+              <svg class="mkt-credits-ring" viewBox="0 0 56 56" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="28" cy="28" r="26" stroke="rgba(92,173,122,0.25)" stroke-width="1" />
+                <circle cx="28" cy="28" r="20" stroke="rgba(92,173,122,0.15)" stroke-width="0.5"
+                  stroke-dasharray="3 4" />
+                <circle cx="28" cy="28" r="13" stroke="rgba(200,169,110,0.2)" stroke-width="0.5" />
+              </svg>
+              <div>
+                <div class="mkt-eyebrow" style="color:var(--muted)">
+                  <span class="mkt-eyebrow-dot" style="background:#5CAD7A"></span>
+                  Credits Left
+                </div>
+                <div class="mkt-number" style="color:var(--cream)" id="credits-stat">{{ user.credits|default:'100' }}
+                </div>
+                <div class="mkt-noun"
+                  style="color:var(--muted);font-style:normal;font-family:'Space Mono',monospace;font-size:9px;letter-spacing:0.1em">
+                  credits available</div>
+              </div>
+              <div>
+                <div class="mkt-desc" style="margin-bottom:10px">Need more? Watch a short ad and earn <span
+                    style="color:#5CAD7A">+500 credits</span> instantly.</div>
+                <div class="mkt-cta-link" style="color:#5CAD7A" onclick="openModal()">
+                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polygon points="5,3 19,12 5,21" fill="currentColor" stroke="none" />
+                  </svg>
+                  Watch ad for +500
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+          <div class="studio-hero">
+            <div class="studio-hero-bg"></div>
+            <div class="noise" style="opacity:0.09"></div>
+            <div class="studio-hero-content">
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+                <div
+                  style="font-family:'Space Mono',monospace;font-size:9px;letter-spacing:0.15em;text-transform:uppercase;color:var(--gold);">
+                  Expressive Tags</div>
+                <div class="cost-tag">
+                  <div class="cost-dot"></div>
+                  <span id="cost-estimate">0 Words · 0 Tokens · $0.000</span>
+                </div>
+              </div>
+
+              <div style="position:relative; margin-bottom:16px; margin-right:-10px;">
+                <div
+                  style="display:flex; gap:6px; overflow-x:auto; padding-bottom:8px; scroll-behavior:smooth; scrollbar-width:none;"
+                  class="emotions-carousel">
+                  <div class="emotion-btn" onclick="insertEmotion('[amazed]')">[amazed]</div>
+                  <div class="emotion-btn" onclick="insertEmotion('[crying]')">[crying]</div>
+                  <div class="emotion-btn" onclick="insertEmotion('[curious]')">[curious]</div>
+                  <div class="emotion-btn" onclick="insertEmotion('[excited]')">[excited]</div>
+                  <div class="emotion-btn" onclick="insertEmotion('[sighs]')">[sighs]</div>
+                  <div class="emotion-btn" onclick="insertEmotion('[gasp]')">[gasp]</div>
+                  <div class="emotion-btn" onclick="insertEmotion('[giggles]')">[giggles]</div>
+                  <div class="emotion-btn" onclick="insertEmotion('[laughs]')">[laughs]</div>
+                  <div class="emotion-btn" onclick="insertEmotion('[mischievously]')">[mischievously]</div>
+                  <div class="emotion-btn" onclick="insertEmotion('[panicked]')">[panicked]</div>
+                  <div class="emotion-btn" onclick="insertEmotion('[sarcastic]')">[sarcastic]</div>
+                  <div class="emotion-btn" onclick="insertEmotion('[serious]')">[serious]</div>
+                  <div class="emotion-btn" onclick="insertEmotion('[shouting]')">[shouting]</div>
+                  <div class="emotion-btn" onclick="insertEmotion('[tired]')">[tired]</div>
+                  <div class="emotion-btn" onclick="insertEmotion('[trembling]')">[trembling]</div>
+                  <div class="emotion-btn" onclick="insertEmotion('[whispers]')">[whispers]</div>
+                </div>
+                <div
+                  style="position:absolute; right:0; top:0; bottom:8px; width:40px; background:linear-gradient(to right, transparent, rgba(14, 13, 11, 0.95)); pointer-events:none; border-radius: 0 10px 10px 0;">
+                </div>
+              </div>
+
+              <div class="text-input-wrap">
+                <textarea class="text-input" id="tts-input"
+                  placeholder="ඔබේ පාඨය මෙහි ඇතුළු කරන්න… (Type your Sinhala text here)" oninput="updateCharCount()"
+                  rows="5"></textarea>
+                <div class="char-count"><span id="char-count">0</span> / 5000 chars</div>
+              </div>
+
+              <div class="controls-row">
+                <div class="ctrl-group">
+                  <div class="ctrl-label">Voice</div>
+                  <select class="ctrl-select" id="voice-sel">
+                    <option>Amara (Female)</option>
+                    <option>Kavya (Female)</option>
+                    <option>Saman (Male)</option>
+                    <option>Ruvini (Female)</option>
+                    <option>Chamara (Male)</option>
+                    <option>Custom Clone ✦</option>
+                  </select>
+                </div>
+                <div class="ctrl-group">
+                  <div class="ctrl-label">Speed</div>
+                  <div class="ctrl-slider-row">
+                    <input type="range" class="ctrl-slider" min="0.5" max="2" step="0.05" value="1" id="speed-slider"
+                      oninput="document.getElementById('speed-val').textContent=parseFloat(this.value).toFixed(2)+'×'">
+                    <span class="ctrl-slider-val" id="speed-val">1.00×</span>
+                  </div>
+                </div>
+                <div class="ctrl-group">
+                  <div class="ctrl-label">Pitch</div>
+                  <div class="ctrl-slider-row">
+                    <input type="range" class="ctrl-slider" min="-10" max="10" step="1" value="0" id="pitch-slider"
+                      oninput="document.getElementById('pitch-val').textContent=(this.value>0?'+':'')+this.value">
+                    <span class="ctrl-slider-val" id="pitch-val">0</span>
+                  </div>
+                </div>
+                <button class="generate-btn" id="gen-btn" onclick="generateTTS()">
+                  Generate
+                </button>
+              </div>
+
+              <!-- Generating State -->
+              <div id="gen-loading" class="hidden" style="padding:10px 0">
+                <div style="display:flex;align-items:center;gap:14px">
+                  <div class="gen-anim">
+                    <div class="gen-bar"></div>
+                    <div class="gen-bar"></div>
+                    <div class="gen-bar"></div>
+                    <div class="gen-bar"></div>
+                    <div class="gen-bar"></div>
+                    <div class="gen-bar"></div>
+                    <div class="gen-bar"></div>
+                  </div>
+                  <div>
+                    <div
+                      style="font-family:'Space Mono',monospace;font-size:9px;letter-spacing:0.15em;text-transform:uppercase;color:var(--gold);margin-bottom:3px">
+                      Synthesising Voice</div>
+                    <div style="font-size:12px;color:var(--muted)">Sculpting phonemes from noise…</div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Player -->
+              <div id="player" class="hidden player-wrap">
+                <div class="play-btn" onclick="togglePlay()">
+                  <svg id="play-icon" viewBox="0 0 24 24">
+                    <polygon points="5,3 19,12 5,21" />
+                  </svg>
+                </div>
+                <canvas class="waveform-canvas" id="waveform" width="340" height="40"></canvas>
+                <div class="player-meta">
+                  <div class="player-time" id="player-time">0:00 / 0:00</div>
+                  <div
+                    style="font-family:'Space Mono',monospace;font-size:8px;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em"
+                    id="player-voice">Amara</div>
+                  <button class="dl-btn" onclick="showToast('Downloading audio…')">↓ WAV</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- RECENT -->
+          <div class="section-hdr">
+            <div>
+              <div class="section-label-tag">Recent</div>
+              <div class="section-title">Generated Clips</div>
+            </div>
+            <div class="view-all" onclick="switchPanel('history',document.querySelector('.nav-item:nth-child(6)'))">View
+              All →</div>
+          </div>
+          <div class="history-list">
+            <div class="history-item">
+              <div class="history-play" onclick="showToast('Playing clip…')"><svg viewBox="0 0 24 24">
+                  <polygon points="5,3 19,12 5,21" />
+                </svg></div>
+              <div style="flex:1;min-width:0">
+                <div
+                  style="font-size:12px;color:var(--cream);margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">
+                  ශ්‍රී ලංකාව සෞන්දර්යමත් රටකි. සිංහල ජනතාව…</div>
+                <div style="font-family:'Space Mono',monospace;font-size:8px;color:var(--muted);letter-spacing:0.08em">
+                  Amara · 0:12 · 280 chars</div>
+              </div>
+              <div
+                style="font-family:'Space Mono',monospace;font-size:8px;color:var(--muted);text-align:right;flex-shrink:0">
+                2m ago<br><span style="color:#C8A96E">−68 cr</span></div>
+            </div>
+            <div class="history-item">
+              <div class="history-play" onclick="showToast('Playing clip…')"><svg viewBox="0 0 24 24">
+                  <polygon points="5,3 19,12 5,21" />
+                </svg></div>
+              <div style="flex:1;min-width:0">
+                <div
+                  style="font-size:12px;color:var(--cream);margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">
+                  Welcome to Rava Studio. The future of Sinhala voice.</div>
+                <div style="font-family:'Space Mono',monospace;font-size:8px;color:var(--muted);letter-spacing:0.08em">
+                  Saman · 0:08 · 178 chars</div>
+              </div>
+              <div
+                style="font-family:'Space Mono',monospace;font-size:8px;color:var(--muted);text-align:right;flex-shrink:0">
+                18m ago<br><span style="color:#C8A96E">−43 cr</span></div>
+            </div>
+            <div class="history-item">
+              <div class="history-play" onclick="showToast('Playing clip…')"><svg viewBox="0 0 24 24">
+                  <polygon points="5,3 19,12 5,21" />
+                </svg></div>
+              <div style="flex:1;min-width:0">
+                <div
+                  style="font-size:12px;color:var(--cream);margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">
+                  කොළඹ, ශ්‍රී ලංකාවේ ප්‍රධාන නගරයයි…</div>
+                <div style="font-family:'Space Mono',monospace;font-size:8px;color:var(--muted);letter-spacing:0.08em">
+                  Kavya · 0:21 · 420 chars</div>
+              </div>
+              <div
+                style="font-family:'Space Mono',monospace;font-size:8px;color:var(--muted);text-align:right;flex-shrink:0">
+                1h ago<br><span style="color:#C8A96E">−101 cr</span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ===== VOICE CLONE PANEL ===== -->
+        <div class="panel" id="panel-clone">
+          <div class="section-hdr" style="margin-bottom:18px">
+            <div>
+              <div class="section-label-tag">Clone</div>
+              <div class="section-title">Your Voice Library</div>
+            </div>
+          </div>
+          <div class="clone-upload" onclick="showToast('Upload your voice sample (min 10s audio)')">
+            <div class="clone-upload-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke-width="1.5">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                <polyline points="17,8 12,3 7,8" />
+                <line x1="12" y1="3" x2="12" y2="15" />
+              </svg>
+            </div>
+            <div class="clone-upload-title">Upload Voice Sample</div>
+            <div class="clone-upload-sub">Drop a .wav or .mp3 (10–120s) to clone any voice.<br>Uses <strong
+                style="color:var(--gold)">200 credits</strong> per clone.</div>
+          </div>
+          <div class="clone-voices-grid" style="margin-top:20px">
+            <div class="voice-card" onclick="selectVoice(this)">
+              <div class="voice-card-badge badge-free">Free</div>
+              <div class="voice-card-avatar" style="background:rgba(26,58,92,0.4);color:#7AAFD4">AM</div>
+              <div class="voice-card-name">Amara</div>
+              <div class="voice-card-meta">Female · Clear · Neutral</div>
+            </div>
+            <div class="voice-card selected" onclick="selectVoice(this)">
+              <div class="voice-card-badge badge-free">Free</div>
+              <div class="voice-card-avatar" style="background:rgba(76,48,128,0.4);color:#B8A0E8">KV</div>
+              <div class="voice-card-name">Kavya</div>
+              <div class="voice-card-meta">Female · Warm · News</div>
+            </div>
+            <div class="voice-card" onclick="selectVoice(this)">
+              <div class="voice-card-badge badge-free">Free</div>
+              <div class="voice-card-avatar" style="background:rgba(26,58,92,0.35);color:#7AAFD4">SA</div>
+              <div class="voice-card-name">Saman</div>
+              <div class="voice-card-meta">Male · Deep · Broadcast</div>
+            </div>
+            <div class="voice-card" onclick="selectVoice(this)">
+              <div class="voice-card-badge badge-pro">Pro</div>
+              <div class="voice-card-avatar" style="background:rgba(192,57,43,0.25);color:#E8806A">RU</div>
+              <div class="voice-card-name">Ruvini</div>
+              <div class="voice-card-meta">Female · Soft · Storytelling</div>
+            </div>
+            <div class="voice-card" onclick="selectVoice(this)">
+              <div class="voice-card-badge badge-pro">Pro</div>
+              <div class="voice-card-avatar" style="background:rgba(200,169,110,0.18);color:var(--gold)">CH</div>
+              <div class="voice-card-name">Chamara</div>
+              <div class="voice-card-meta">Male · Energetic · Ads</div>
+            </div>
+            <div class="voice-card" onclick="selectVoice(this)">
+              <div class="voice-card-badge badge-cloned">Cloned</div>
+              <div class="voice-card-avatar" style="background:rgba(180,60,35,0.25);color:#E8806A">MY</div>
+              <div class="voice-card-name">My Voice</div>
+              <div class="voice-card-meta">Custom · Cloned · Personal</div>
+            </div>
+          </div>
+
+          <div style="margin-top:24px">
+            <div class="section-hdr">
+              <div>
+                <div class="section-label-tag">Generate with Clone</div>
+                <div class="section-title">Speak in Your Voice</div>
+              </div>
+            </div>
+            <div class="studio-hero" style="margin-bottom:0">
+              <div class="studio-hero-bg" style="opacity:0.6"></div>
+              <div class="noise" style="opacity:0.07"></div>
+              <div class="studio-hero-content">
+                <textarea class="text-input" placeholder="ඔබේ හඬෙන් කතා කරන්නට අවශ්‍ය පාඨය ඇතුළු කරන්න…"
+                  rows="3"></textarea>
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-top:12px">
+                  <div class="cost-tag">
+                    <div class="cost-dot"></div>~40 credits / 100 chars · Clone fee included
+                  </div>
+                  <button class="generate-btn" onclick="showToast('Voice clone synthesis started!')">Clone &
+                    Speak</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ===== BATCH PANEL ===== -->
+        <div class="panel" id="panel-batch">
+          <div class="section-hdr">
+            <div>
+              <div class="section-label-tag">Batch</div>
+              <div class="section-title">Bulk Text-to-Speech</div>
+            </div>
+          </div>
+          <div
+            style="background:var(--ink-soft);border:0.5px solid var(--border);border-radius:12px;padding:24px;position:relative;overflow:hidden;margin-bottom:16px">
+            <div class="noise"></div>
+            <div style="position:relative;z-index:1">
+              <div
+                style="font-family:'Space Mono',monospace;font-size:8px;letter-spacing:0.15em;text-transform:uppercase;color:var(--muted);margin-bottom:12px">
+                Upload CSV / TXT</div>
+              <div class="clone-upload" onclick="showToast('Upload a CSV with text column for batch generation')">
+                <div class="clone-upload-icon">
+                  <svg viewBox="0 0 24 24" fill="none" stroke-width="1.5">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                    <polyline points="14,2 14,8 20,8" />
+                    <line x1="16" y1="13" x2="8" y2="13" />
+                    <line x1="16" y1="17" x2="8" y2="17" />
+                  </svg>
+                </div>
+                <div class="clone-upload-title">Upload Batch File</div>
+                <div class="clone-upload-sub">CSV with text column · Max 500 rows per batch<br>Requires <strong
+                    style="color:var(--gold)">Pro Plan</strong> or individual credits</div>
+              </div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:16px">
+                <div class="ctrl-group">
+                  <div class="ctrl-label">Voice for All</div>
+                  <select class="ctrl-select">
+                    <option>Amara (Female)</option>
+                    <option>Saman (Male)</option>
+                    <option>Kavya (Female)</option>
+                  </select>
+                </div>
+                <div class="ctrl-group">
+                  <div class="ctrl-label">Output Format</div>
+                  <select class="ctrl-select">
+                    <option>WAV (Lossless)</option>
+                    <option>MP3 192kbps</option>
+                    <option>FLAC</option>
+                  </select>
+                </div>
+              </div>
+              <button class="generate-btn" style="margin-top:14px;width:100%"
+                onclick="showToast('Batch job queued — we will notify when ready')">Queue Batch Job</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- ===== HISTORY PANEL ===== -->
+        <div class="panel" id="panel-history">
+          <div class="section-hdr">
+            <div>
+              <div class="section-label-tag">History</div>
+              <div class="section-title">All Generated Audio</div>
+            </div>
+            <div class="view-all" onclick="showToast('Downloading all as ZIP…')">↓ Export All</div>
+          </div>
+          <div class="history-list">
+            <div class="history-item">
+              <div class="history-play" onclick="showToast('Playing…')"><svg viewBox="0 0 24 24">
+                  <polygon points="5,3 19,12 5,21" />
+                </svg></div>
+              <div style="flex:1;min-width:0">
+                <div
+                  style="font-size:12px;color:var(--cream);margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">
+                  ශ්‍රී ලංකාව සෞන්දර්යමත් රටකි. සිංහල ජනතාව…</div>
+                <div style="font-family:'Space Mono',monospace;font-size:8px;color:var(--muted)">Amara · 0:12 · 280
+                  chars</div>
+              </div>
+              <div
+                style="font-family:'Space Mono',monospace;font-size:8px;color:var(--muted);text-align:right;flex-shrink:0">
+                Today 10:42<br><span style="color:#C8A96E">−68 cr</span></div>
+            </div>
+            <div class="history-item">
+              <div class="history-play" onclick="showToast('Playing…')"><svg viewBox="0 0 24 24">
+                  <polygon points="5,3 19,12 5,21" />
+                </svg></div>
+              <div style="flex:1;min-width:0">
+                <div
+                  style="font-size:12px;color:var(--cream);margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">
+                  Welcome to Rava Studio. The future of Sinhala voice.</div>
+                <div style="font-family:'Space Mono',monospace;font-size:8px;color:var(--muted)">Saman · 0:08 · 178
+                  chars</div>
+              </div>
+              <div
+                style="font-family:'Space Mono',monospace;font-size:8px;color:var(--muted);text-align:right;flex-shrink:0">
+                Today 10:24<br><span style="color:#C8A96E">−43 cr</span></div>
+            </div>
+            <div class="history-item">
+              <div class="history-play" onclick="showToast('Playing…')"><svg viewBox="0 0 24 24">
+                  <polygon points="5,3 19,12 5,21" />
+                </svg></div>
+              <div style="flex:1;min-width:0">
+                <div
+                  style="font-size:12px;color:var(--cream);margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">
+                  කොළඹ, ශ්‍රී ලංකාවේ ප්‍රධාන නගරයයි…</div>
+                <div style="font-family:'Space Mono',monospace;font-size:8px;color:var(--muted)">Kavya · 0:21 · 420
+                  chars</div>
+              </div>
+              <div
+                style="font-family:'Space Mono',monospace;font-size:8px;color:var(--muted);text-align:right;flex-shrink:0">
+                Yesterday 18:05<br><span style="color:#C8A96E">−101 cr</span></div>
+            </div>
+            <div class="history-item">
+              <div class="history-play" onclick="showToast('Playing…')"><svg viewBox="0 0 24 24">
+                  <polygon points="5,3 19,12 5,21" />
+                </svg></div>
+              <div style="flex:1;min-width:0">
+                <div
+                  style="font-size:12px;color:var(--cream);margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">
+                  Rava — Sri Lanka's most advanced TTS model</div>
+                <div style="font-family:'Space Mono',monospace;font-size:8px;color:var(--muted)">My Voice (Clone) · 0:05
+                  · 98 chars</div>
+              </div>
+              <div
+                style="font-family:'Space Mono',monospace;font-size:8px;color:var(--muted);text-align:right;flex-shrink:0">
+                Yesterday 14:12<br><span style="color:#C8A96E">−39 cr</span></div>
+            </div>
+            <div class="history-item">
+              <div class="history-play" onclick="showToast('Playing…')"><svg viewBox="0 0 24 24">
+                  <polygon points="5,3 19,12 5,21" />
+                </svg></div>
+              <div style="flex:1;min-width:0">
+                <div
+                  style="font-size:12px;color:var(--cream);margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">
+                  රාවණා රජු සහ දේවතාවි සීතා දේවිය…</div>
+                <div style="font-family:'Space Mono',monospace;font-size:8px;color:var(--muted)">Ruvini · 0:35 · 680
+                  chars</div>
+              </div>
+              <div
+                style="font-family:'Space Mono',monospace;font-size:8px;color:var(--muted);text-align:right;flex-shrink:0">
+                May 2<br><span style="color:#C8A96E">−163 cr</span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ===== API PANEL ===== -->
+        <div class="panel" id="panel-api">
+          <div class="section-hdr">
+            <div>
+              <div class="section-label-tag">Developer</div>
+              <div class="section-title">API Access</div>
+            </div>
+          </div>
+          <div
+            style="background:var(--ink-soft);border:0.5px solid var(--border);border-radius:12px;padding:24px;position:relative;overflow:hidden;margin-bottom:14px">
+            <div class="noise"></div>
+            <div style="position:relative;z-index:1">
+              <div
+                style="font-family:'Space Mono',monospace;font-size:8px;letter-spacing:0.15em;text-transform:uppercase;color:var(--muted);margin-bottom:8px">
+                Your API Key</div>
+              <div
+                style="background:rgba(0,0,0,0.3);border:0.5px solid var(--border);border-radius:8px;padding:12px 16px;display:flex;align-items:center;justify-content:space-between">
+                <div style="font-family:'Space Mono',monospace;font-size:12px;color:var(--gold);letter-spacing:0.08em">
+                  vk_live_•••••••••••••••••••••••••••</div>
+                <button class="dl-btn" onclick="showToast('API key copied to clipboard!')">Copy</button>
+              </div>
+              <div
+                style="margin-top:20px;font-family:'Space Mono',monospace;font-size:8px;letter-spacing:0.15em;text-transform:uppercase;color:var(--muted);margin-bottom:8px">
+                Quick Start</div>
+              <div
+                style="background:rgba(0,0,0,0.4);border:0.5px solid var(--border);border-radius:8px;padding:14px 16px;font-family:'Space Mono',monospace;font-size:11px;color:#7AAFD4;line-height:1.8">
+                <span style="color:var(--muted)">// POST</span> https://api.rava.lk/v1/tts<br>
+                {<br>
+                &nbsp;&nbsp;<span style="color:#E8D4A8">"text"</span>: <span style="color:#90C48A">"ඔබේ
+                  පාඨය"</span>,<br>
+                &nbsp;&nbsp;<span style="color:#E8D4A8">"voice"</span>: <span style="color:#90C48A">"amara"</span>,<br>
+                &nbsp;&nbsp;<span style="color:#E8D4A8">"speed"</span>: <span style="color:#C8A96E">1.0</span>,<br>
+                &nbsp;&nbsp;<span style="color:#E8D4A8">"format"</span>: <span style="color:#90C48A">"wav"</span><br>
+                }
+              </div>
+              <div style="margin-top:12px;display:flex;gap:8px">
+                <button class="generate-btn" onclick="showToast('Opening API docs…')">View Docs →</button>
+                <button class="dl-btn" style="padding:10px 16px" onclick="showToast('SDK copied!')">Copy SDK</button>
+              </div>
+            </div>
+          </div>
+          <div
+            style="background:rgba(26,58,92,0.15);border:0.5px solid rgba(26,58,92,0.5);border-radius:10px;padding:14px 16px;font-size:12px;color:var(--muted);line-height:1.7">
+            API access requires <strong style="color:var(--cream)">Pro Plan</strong>. Unlimited calls, 99.9% uptime SLA,
+            dedicated Sinhala phoneme engine. <span style="color:var(--gold);cursor:pointer"
+              onclick="openModal()">Upgrade now →</span>
+          </div>
+        </div>
+
+        <!-- ===== SETTINGS PANEL ===== -->
+        <div class="panel" id="panel-settings">
+          <div class="section-hdr">
+            <div>
+              <div class="section-label-tag">Settings</div>
+              <div class="section-title">Studio Preferences</div>
+            </div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <div
+              style="background:var(--ink-soft);border:0.5px solid var(--border);border-radius:10px;padding:18px 20px;display:flex;align-items:center;justify-content:space-between">
+              <div>
+                <div style="font-size:13px;color:var(--cream);margin-bottom:2px">Auto-save generations</div>
+                <div style="font-size:12px;color:var(--muted)">Store all clips to your history</div>
+              </div>
+              <div
+                style="width:36px;height:20px;border-radius:10px;background:rgba(200,169,110,0.4);border:0.5px solid rgba(200,169,110,0.6);cursor:pointer;position:relative"
+                onclick="this.style.background='rgba(200,169,110,'+((this.dataset.on=''+!this.dataset.on)?0.4:0.1)+')'">
+                <div
+                  style="position:absolute;top:2px;right:2px;width:16px;height:16px;border-radius:50%;background:var(--gold)">
+                </div>
+              </div>
+            </div>
+            <div
+              style="background:var(--ink-soft);border:0.5px solid var(--border);border-radius:10px;padding:18px 20px;display:flex;align-items:center;justify-content:space-between">
+              <div>
+                <div style="font-size:13px;color:var(--cream);margin-bottom:2px">Default output format</div>
+                <div style="font-size:12px;color:var(--muted)">WAV, MP3, or FLAC</div>
+              </div>
+              <select class="ctrl-select" style="width:120px">
+                <option>WAV</option>
+                <option>MP3</option>
+                <option>FLAC</option>
+              </select>
+            </div>
+            <div
+              style="background:var(--ink-soft);border:0.5px solid var(--border);border-radius:10px;padding:18px 20px;display:flex;align-items:center;justify-content:space-between">
+              <div>
+                <div style="font-size:13px;color:var(--cream);margin-bottom:2px">Credit alerts</div>
+                <div style="font-size:12px;color:var(--muted)">Notify when credits fall below 200</div>
+              </div>
+              <div
+                style="width:36px;height:20px;border-radius:10px;background:rgba(200,169,110,0.1);border:0.5px solid var(--border);cursor:pointer">
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </main>
+  </div>
+
+  <!-- ===== REFILL MODAL ===== -->
+  <div class="modal-overlay hidden" id="modal-overlay" onclick="handleOverlayClick(event)">
+    <div class="modal-box" id="modal-box">
+      <div class="modal-bg"></div>
+      <div class="noise" style="opacity:0.09"></div>
+      <div class="modal-content">
+        <div class="modal-title">Refill Quota</div>
+        <div class="modal-sub">Choose how you would like to add generation credits to your workspace.</div>
+
+        <div class="plans-grid">
+          <!-- FREE -->
+          <div class="plan-card plan-free" onclick="selectPlan(this,'free')">
+            <div class="plan-card-noise"></div>
+            <div class="plan-icon">📺</div>
+            <div class="plan-name">Free</div>
+            <div class="plan-desc">Watch Ad for +500 Quota</div>
+            <div class="plan-price">$0 <span>per month</span></div>
+          </div>
+          <!-- STARTER -->
+          <div class="plan-card plan-starter selected" onclick="selectPlan(this,'starter')">
+            <div class="plan-card-noise"></div>
+            <div class="plan-icon">$</div>
+            <div class="plan-name">Starter</div>
+            <div class="plan-desc">50,000 chars & 5 Voices</div>
+            <div class="plan-price">$6 <span>per month</span></div>
+          </div>
+          <!-- PRO -->
+          <div class="plan-card plan-pro" onclick="selectPlan(this,'pro')">
+            <div class="plan-card-noise"></div>
+            <div class="plan-icon">☆</div>
+            <div class="plan-name">Pro</div>
+            <div class="plan-desc">Unlimited API Access</div>
+            <div class="plan-price">$99 <span>per month</span></div>
+          </div>
+        </div>
+
+        <button class="watch-ad-btn" onclick="watchAd()">
+          <svg viewBox="0 0 24 24">
+            <polygon points="5,3 19,12 5,21" fill="currentColor" stroke="none" style="fill:#7AAFD4" />
+          </svg>
+          Watch Ad for +500 Free Credits
+        </button>
+
+        <div style="display:flex;gap:10px;justify-content:center;margin-top:16px">
+          <button class="btn-cancel" onclick="closeModal()">Cancel</button>
+          <button class="btn-subscribe" id="subscribe-btn" onclick="subscribe()">Subscribe — $6/mo</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOAST -->
+  <div class="toast" id="toast"></div>
+
+  <script>
+    // Load User's actual credits into JS (Fall back to 100 if something fails)
+    let credits = parseInt("{{ user.credits|default:'100' }}", 10);
+    let selectedPlan = 'starter';
+    let isPlaying = false;
+    let isGenerating = false;
+    let playInterval = null;
+    let playProgress = 0;
+    const totalDuration = 14;
+
+    function switchPanel(name, el) {
+      document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+      document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+      const panel = document.getElementById('panel-' + name);
+      if (panel) panel.classList.add('active');
+      if (el) el.classList.add('active');
+      const titles = { tts: 'TTS Generate', clone: 'Voice Cloning', batch: 'Batch Convert', history: 'History', api: 'API Access', settings: 'Settings' };
+      document.getElementById('page-title').textContent = titles[name] || name;
+    }
+
+    function insertEmotion(tag) {
+      const input = document.getElementById('tts-input');
+      const start = input.selectionStart;
+      const end = input.selectionEnd;
+      const text = input.value;
+      // Inserts the emotion tag with a trailing space at the cursor position
+      input.value = text.substring(0, start) + tag + ' ' + text.substring(end);
+      input.selectionStart = input.selectionEnd = start + tag.length + 1;
+      input.focus();
+      updateCharCount();
+    }
+
+    function updateCharCount() {
+      const t = document.getElementById('tts-input').value;
+      document.getElementById('char-count').textContent = t.length;
+
+      // Real-time calculation: 840 tokens = 1 word | 1M tokens = $20
+      const wordsMatch = t.trim().match(/\S+/g);
+      const words = wordsMatch ? wordsMatch.length : 0;
+      const tokens = words * 840;
+      const costUsd = (tokens / 1000000) * 20;
+
+      document.getElementById('cost-estimate').textContent = `${words} Words · ${tokens.toLocaleString()} Tokens · $${costUsd.toFixed(3)}`;
+    }
+
+    function generateTTS() {
+      if (isGenerating) return;
+      const text = document.getElementById('tts-input').value.trim();
+      if (!text) { showToast('Please enter some text first'); return; }
+      const cost = Math.max(20, Math.round(text.length * 0.24));
+      if (credits < cost) { showToast('Not enough credits! Add more.'); openModal(); return; }
+
+      isGenerating = true;
+      const btn = document.getElementById('gen-btn');
+      btn.textContent = 'Generating…';
+      btn.classList.add('generating');
+      document.getElementById('gen-loading').classList.remove('hidden');
+      document.getElementById('player').classList.add('hidden');
+
+      setTimeout(() => {
+        credits -= cost;
+        updateCreditDisplay();
+        isGenerating = false;
+        btn.textContent = 'Generate';
+        btn.classList.remove('generating');
+        document.getElementById('gen-loading').classList.add('hidden');
+        document.getElementById('player').classList.remove('hidden');
+        const voice = document.getElementById('voice-sel').value.split(' ')[0];
+        document.getElementById('player-voice').textContent = voice;
+        playProgress = 0;
+        updatePlayerTime();
+        drawWaveform();
+        showToast('Audio generated! −' + cost + ' credits');
+      }, 2200);
+    }
+
+    function togglePlay() {
+      isPlaying = !isPlaying;
+      const icon = document.getElementById('play-icon');
+      if (isPlaying) {
+        icon.innerHTML = '<rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/>';
+        playInterval = setInterval(() => {
+          playProgress += 1 / totalDuration;
+          if (playProgress >= 1) { playProgress = 0; isPlaying = false; icon.innerHTML = '<polygon points="5,3 19,12 5,21"/>'; clearInterval(playInterval); }
+          updatePlayerTime();
+          drawWaveform();
+        }, 1000);
+      } else {
+        icon.innerHTML = '<polygon points="5,3 19,12 5,21"/>';
+        clearInterval(playInterval);
+      }
+    }
+
+    function updatePlayerTime() {
+      const cur = Math.round(playProgress * totalDuration);
+      const m = Math.floor(cur / 60), s = cur % 60;
+      const tm = Math.floor(totalDuration / 60), ts = totalDuration % 60;
+      document.getElementById('player-time').textContent = m + ':' + String(s).padStart(2, '0') + ' / ' + tm + ':' + String(ts).padStart(2, '0');
+    }
+
+    function drawWaveform() {
+      const c = document.getElementById('waveform');
+      if (!c) return;
+      const ctx = c.getContext('2d');
+      ctx.clearRect(0, 0, c.width, c.height);
+      const bars = 60, barW = c.width / bars;
+      for (let i = 0; i < bars; i++) {
+        const progress = i / bars;
+        const seed = Math.sin(i * 2.5) * 0.5 + Math.sin(i * 0.8) * 0.3 + Math.sin(i * 7.1) * 0.2;
+        const h = (Math.abs(seed) * 0.7 + 0.15) * c.height;
+        const y = (c.height - h) / 2;
+        if (progress <= playProgress) {
+          ctx.fillStyle = '#C8A96E';
+        } else {
+          ctx.fillStyle = 'rgba(200,169,110,0.2)';
+        }
+        ctx.beginPath();
+        ctx.roundRect(i * barW + 1, y, barW - 2, h, 1);
+        ctx.fill();
+      }
+    }
+
+    function updateCreditDisplay() {
+      const fmt = credits.toLocaleString();
+      document.getElementById('credit-display').textContent = fmt;
+      document.getElementById('credits-stat').textContent = fmt;
+    }
+
+    function openModal() {
+      document.getElementById('modal-overlay').classList.remove('hidden');
+    }
+    function closeModal() {
+      document.getElementById('modal-overlay').classList.add('hidden');
+    }
+    function handleOverlayClick(e) {
+      if (e.target === document.getElementById('modal-overlay')) closeModal();
+    }
+
+    function selectPlan(el, plan) {
+      document.querySelectorAll('.plan-card').forEach(c => c.classList.remove('selected'));
+      el.classList.add('selected');
+      selectedPlan = plan;
+      const labels = { free: 'Watch Ad — Free', starter: 'Subscribe — $6/mo', pro: 'Subscribe — $99/mo' };
+      document.getElementById('subscribe-btn').textContent = labels[plan];
+    }
+
+    function watchAd() {
+      closeModal();
+      showToast('Watching ad… +500 credits incoming!');
+      setTimeout(() => {
+        credits += 500;
+        updateCreditDisplay();
+        showToast('+500 credits added!');
+      }, 2500);
+    }
+
+    function subscribe() {
+      const plan = selectedPlan;
+      closeModal();
+      if (plan === 'free') { watchAd(); return; }
+      const adds = { starter: 12000, pro: 999999 };
+      const names = { starter: 'Starter', pro: 'Pro' };
+      showToast('Redirecting to checkout for ' + names[plan] + ' plan…');
+      setTimeout(() => {
+        credits += (adds[plan] || 500);
+        if (plan === 'pro') credits = 999999;
+        updateCreditDisplay();
+        showToast(names[plan] + ' plan activated!');
+      }, 1500);
+    }
+
+    function selectVoice(el) {
+      document.querySelectorAll('.voice-card').forEach(c => c.classList.remove('selected'));
+      el.classList.add('selected');
+      showToast('Voice selected: ' + el.querySelector('.voice-card-name').textContent);
+    }
+
+    function showToast(msg) {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.classList.add('show');
+      setTimeout(() => t.classList.remove('show'), 2800);
+    }
+
+    // Sidebar spectrum bars
+    (function () {
+      const sidebar = document.querySelector('.sidebar');
+      const wrap = document.createElement('div');
+      wrap.className = 'spectrum-wrap';
+      wrap.style.cssText = 'padding:0 16px;margin-bottom:12px';
+      const count = 28;
+      const bars = [];
+      function makeH(i) { const p = i / count; return Math.random() * (1 - p) * 18 + p * 2 + 3; }
+      for (let i = 0; i < count; i++) {
+        const b = document.createElement('div');
+        b.className = 'sbar';
+        const p = i / count;
+        b.style.height = makeH(i) + 'px';
+        b.style.opacity = (0.2 + p * 0.7).toFixed(2);
+        if (p < 0.3) b.style.background = `rgba(26,58,92,${(0.5 + p * 1.5).toFixed(2)})`;
+        else if (p < 0.65) b.style.background = `rgba(200,169,110,${(0.4 + p * 0.5).toFixed(2)})`;
+        else b.style.background = `rgba(192,57,43,${(0.5 + p * 0.3).toFixed(2)})`;
+        wrap.appendChild(b);
+        bars.push(b);
+      }
+      const footer = document.querySelector('.sidebar-footer');
+      sidebar.insertBefore(wrap, footer);
+      setInterval(() => {
+        bars.forEach((b, i) => {
+          if (Math.random() < 0.3) b.style.height = makeH(i) + 'px';
+        });
+      }, 80);
+    })();
+
+    // Force an immediate UI update for the credits text fields based on database info
+    updateCreditDisplay();
+    drawWaveform();
+  </script>
+</body>
+
+</html>

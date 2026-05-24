@@ -1,0 +1,112 @@
+{% load socialaccount %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Email Settings — Rava</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --gold:#C8A96E; --ink:#0E0D0B; --ink-soft:#1C1A16; --cream:#F5F1EA;
+  --red:#C0392B; --muted:#6B6456; --border:rgba(200,169,110,0.18);
+}
+body{background:var(--ink);color:var(--cream);font-family:'DM Sans',sans-serif;min-height:100vh;display:flex;align-items:center;justify-content:center;position:relative;overflow-x:hidden}
+
+.bg-gradients{position:absolute;inset:0;background:radial-gradient(ellipse 60% 70% at 20% 30%,rgba(26,58,92,0.4) 0%,transparent 60%),radial-gradient(ellipse 40% 50% at 80% 80%,rgba(192,57,43,0.15) 0%,transparent 55%),radial-gradient(ellipse 50% 50% at 50% 50%,rgba(200,169,110,0.05) 0%,transparent 70%);z-index:0;}
+.noise{position:absolute;inset:0;pointer-events:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.78' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='220' height='220' filter='url(%23n)'/%3E%3C/svg%3E");opacity:0.06;mix-blend-mode:overlay;z-index:1;}
+
+.auth-wrapper{position:relative;z-index:10;width:100%;max-width:520px;padding:24px;}
+.auth-card{background:var(--ink-soft);border:0.5px solid var(--border);border-radius:16px;padding:40px;position:relative;overflow:hidden;box-shadow:0 24px 48px rgba(0,0,0,0.5);}
+.auth-card .noise{opacity:0.04;}
+
+.auth-header{text-align:center;margin-bottom:32px;}
+.auth-title{font-family:'DM Serif Display',serif;font-size:24px;color:var(--cream);margin-bottom:8px;}
+.auth-subtitle{font-size:13px;color:var(--muted);line-height:1.6;}
+
+/* Global Django Form Styling */
+.auth-card input[type="text"], .auth-card input[type="email"], .auth-card input[type="password"] {
+  width:100%; background:rgba(255,255,255,0.03); border:0.5px solid var(--border); border-radius:8px; padding:12px 16px; color:var(--cream); font-family:'DM Sans',sans-serif; font-size:14px; transition:all 0.2s; outline:none; margin-bottom:16px;
+}
+.auth-card input:focus{border-color:var(--gold); background:rgba(200,169,110,0.05);}
+.auth-card label{display:block; font-family:'Space Mono',monospace; font-size:9px; letter-spacing:0.15em; text-transform:uppercase; color:var(--muted); margin-bottom:8px;}
+.helptext {font-size: 11px; color: var(--muted); margin-top: -12px; margin-bottom: 20px; display: block;}
+.errorlist {color: var(--red); font-size: 12px; margin-bottom: 16px; list-style:none; padding:0;}
+
+/* Email List Styling */
+.email-list {margin-bottom: 24px;}
+.email-row {display:flex; align-items:center; justify-content:space-between; background:rgba(255,255,255,0.03); border:0.5px solid var(--border); border-radius:8px; padding:12px 16px; margin-bottom:8px; transition:all 0.2s;}
+.email-row:hover {border-color:rgba(200,169,110,0.4); background:rgba(200,169,110,0.05);}
+.email-row label {margin:0; text-transform:none; font-family:'DM Sans',sans-serif; font-size:14px; color:var(--cream); letter-spacing:0; display:flex; align-items:center; gap:10px; cursor:pointer;}
+.email-row input[type="radio"] {accent-color: var(--gold); transform:scale(1.2);}
+.badge {font-family:'Space Mono',monospace; font-size:8px; letter-spacing:0.1em; text-transform:uppercase; padding:3px 8px; border-radius:4px;}
+.badge-primary {background:rgba(200,169,110,0.15); color:var(--gold); border:0.5px solid rgba(200,169,110,0.3);}
+.badge-unverified {background:rgba(192,57,43,0.2); color:#E8806A; border:0.5px solid rgba(192,57,43,0.4);}
+
+.btn-primary{width:100%;background:linear-gradient(135deg,rgba(200,169,110,0.25),rgba(200,169,110,0.1));border:0.5px solid rgba(200,169,110,0.5);border-radius:8px;padding:14px;color:var(--gold);font-family:'Space Mono',monospace;font-size:10px;letter-spacing:0.18em;text-transform:uppercase;cursor:pointer;transition:all .25s;}
+.btn-primary:hover{background:linear-gradient(135deg,rgba(200,169,110,0.4),rgba(200,169,110,0.2));border-color:var(--gold);box-shadow:0 0 20px rgba(200,169,110,0.15)}
+.btn-ghost{background:transparent;border:0.5px solid var(--border);border-radius:8px;padding:10px 14px;color:var(--muted);font-family:'Space Mono',monospace;font-size:9px;letter-spacing:0.15em;text-transform:uppercase;cursor:pointer;transition:all .2s;}
+.btn-ghost:hover{border-color:var(--gold);color:var(--gold);}
+.btn-danger:hover{border-color:var(--red);color:var(--red);}
+
+.action-row {display:flex; gap:10px; margin-bottom:32px;}
+.divider{display:flex;align-items:center;text-align:center;margin:32px 0;color:var(--muted);font-family:'Space Mono',monospace;font-size:9px;letter-spacing:0.1em;text-transform:uppercase;}
+.divider::before, .divider::after{content:'';flex:1;border-bottom:0.5px solid var(--border);}
+.divider:not(:empty)::before{margin-right:16px;}
+.divider:not(:empty)::after{margin-left:16px;}
+.back-link {display:block; text-align:center; font-size:13px; color:var(--muted); text-decoration:none; margin-top:24px; transition:color 0.2s;}
+.back-link:hover {color:var(--gold);}
+</style>
+</head>
+<body>
+<div class="bg-gradients"></div>
+<div class="noise"></div>
+<div class="auth-wrapper">
+  <div class="auth-card">
+    <div class="noise"></div>
+    <div style="position:relative;z-index:2;">
+      <div class="auth-header">
+        <h1 class="auth-title">Email Addresses</h1>
+        <p class="auth-subtitle">Manage the email addresses associated with your account.</p>
+      </div>
+
+      {% if user.emailaddress_set.all %}
+        <form action="{% url 'account_email' %}" method="post">
+          {% csrf_token %}
+          <div class="email-list">
+            {% for emailaddress in user.emailaddress_set.all %}
+            <div class="email-row">
+              <label>
+                <input type="radio" name="email" value="{{ emailaddress.email }}" {% if emailaddress.primary %}checked{% endif %}>
+                {{ emailaddress.email }}
+              </label>
+              <div>
+                {% if emailaddress.primary %}<span class="badge badge-primary">Primary</span>{% endif %}
+                {% if not emailaddress.verified %}<span class="badge badge-unverified">Unverified</span>{% endif %}
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+          <div class="action-row">
+            <button class="btn-ghost" type="submit" name="action_primary">Make Primary</button>
+            <button class="btn-ghost" type="submit" name="action_send">Re-send Verification</button>
+            <button class="btn-ghost btn-danger" type="submit" name="action_remove">Remove</button>
+          </div>
+        </form>
+      {% endif %}
+
+      <div class="divider">Add Email Address</div>
+
+      <form method="post" action="{% url 'account_email' %}">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button class="btn-primary" type="submit" name="action_add">Add Email</button>
+      </form>
+
+      <a href="/studio/" class="back-link">← Back to Studio</a>
+    </div>
+  </div>
+</div>
+</body>
+</html>
