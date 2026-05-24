@@ -69,6 +69,12 @@ SITE_ID = 1
 # 3. Tell Django to use your custom user model
 AUTH_USER_MODEL = 'rava_app.CustomUser'
 
+CSRF_TRUSTED_ORIGINS = [
+    'https://rava.onemindsolutions.com',
+]
+
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
 # 4. Authentication Backends configuration
 AUTHENTICATION_BACKENDS = [
     # Needed to login by username in Django admin, regardless of `allauth`
